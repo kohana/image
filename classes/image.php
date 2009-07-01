@@ -1,13 +1,27 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-
+/**
+ * Image manipulation abstract class.
+ *
+ * @package    Image
+ * @author     Kohana Team
+ * @copyright  (c) 2008-2009 Kohana Team
+ * @license    http://kohanaphp.com/license.html
+ */
 abstract class Image {
 
-	const NONE      = 0x01;
-	const WIDTH     = 0x02;
-	const HEIGHT    = 0x03;
-	const AUTO      = 0x04;
+	// Resizing contraints
+	const NONE   = 0x01;
+	const WIDTH  = 0x02;
+	const HEIGHT = 0x03;
+	const AUTO   = 0x04;
 
-	public static $default_type = 'GD';
+	/**
+	 * @var  string  default driver: GD, ImageMagick, etc
+	 */
+	public static $default_driver = 'GD';
+
+	// Status of the driver check
+	protected static $_checked = FALSE;
 
 	/**
 	 * Creates an image wrapper.
@@ -16,16 +30,16 @@ abstract class Image {
 	 * @param   string   driver type: GD, ImageMagick, etc
 	 * @return  Image
 	 */
-	public static function factory($file, $type = NULL)
+	public static function factory($file, $driver = NULL)
 	{
-		if ($type === NULL)
+		if ($driver === NULL)
 		{
-			// Use the default type
-			$type = Image::$default_type;
+			// Use the default driver
+			$driver = Image::$default_driver;
 		}
 
 		// Set the class name
-		$class = 'Image_'.$type;
+		$class = 'Image_'.$driver;
 
 		return new $class($file);
 	}
@@ -161,8 +175,8 @@ abstract class Image {
 	 *
 	 * @param   integer  new width
 	 * @param   integer  new height
-	 * @param   integer  offset from the left
-	 * @param   integer  offset from the top
+	 * @param   mixed    offset from the left
+	 * @param   mixed    offset from the top
 	 * @return  $this
 	 */
 	public function crop($width = NULL, $height = NULL, $offset_x = TRUE, $offset_y = TRUE)
@@ -194,7 +208,7 @@ abstract class Image {
 			$offset_x = (int) ($this->width - $width);
 		}
 
-		if ($offset_y = TRUE)
+		if ($offset_y === TRUE)
 		{
 			// Center the Y offset
 			$offset_y = (int) ($this->height - $height) / 2;
@@ -202,7 +216,7 @@ abstract class Image {
 		elseif ($offset_y === -1)
 		{
 			// Bottom the Y offset
-			$offset_y = (int) ($this->width - $width);
+			$offset_y = (int) ($this->height - $height);
 		}
 
 		return $this;
@@ -285,14 +299,76 @@ abstract class Image {
 		return $this->_do_save($file, $quality);
 	}
 
+	/**
+	 * Render the image and return the data.
+	 *
+	 * @param   string   image type to return: png, jpg, gif, etc
+	 * @param   integer  quality of image: 1-100
+	 * @return  string
+	 */
+	public function render($type = NULL, $quality = 100)
+	{
+		if ($type === NULL)
+		{
+			// Use the current image type
+			$type = image_type_to_extension($this->type, FALSE);
+		}
+
+		return $this->_do_render($type, $quality);
+	}
+
+	/**
+	 * Execute a resize.
+	 *
+	 * @param   integer  new width
+	 * @param   integer  new height
+	 * @return  void
+	 */
 	abstract protected function _do_resize($width, $height);
 
+	/**
+	 * Execute a crop.
+	 *
+	 * @param   integer  new width
+	 * @param   integer  new height
+	 * @param   integer  offset from the left
+	 * @param   integer  offset from the top
+	 * @return  void
+	 */
 	abstract protected function _do_crop($width, $height, $offset_x, $offset_y);
 
+	/**
+	 * Execute a rotation.
+	 *
+	 * @param   integer  degrees to rotate
+	 * @return  void
+	 */
 	abstract protected function _do_rotate($degrees);
 
+	/**
+	 * Execute a sharpen.
+	 *
+	 * @param   integer  amount to sharpen
+	 * @return  void
+	 */
 	abstract protected function _do_sharpen($amount);
 
+	/**
+	 * Execute a save.
+	 *
+	 * @param   string   new image filename
+	 * @param   integer  quality
+	 * @return  boolean
+	 */
 	abstract protected function _do_save($file, $quality);
+
+	/**
+	 * Execute a render.
+	 *
+	 * @param   string    image type: png, jpg, gif, etc
+	 * @param   integer   quality
+	 * @return  string
+	 */
+	abstract protected function _do_render($type, $quality);
 
 } // End Image
