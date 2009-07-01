@@ -169,9 +169,11 @@ abstract class Image {
 
 	/**
 	 * Crop an image to the given size. Either the width or the height can be
-	 * omitted and the current width or height will be used. Use TRUE for an
-	 * offset to center the offset. Use -1 for an offset to crop from the
-	 * bottom/right.
+	 * omitted and the current width or height will be used.
+	 *
+	 * If no offset is specified, the center of the axis will be used.
+	 *
+	 * If an offset of -1 is specified, the bottom of the axis will be used.
 	 *
 	 * @param   integer  new width
 	 * @param   integer  new height
@@ -179,7 +181,7 @@ abstract class Image {
 	 * @param   mixed    offset from the top
 	 * @return  $this
 	 */
-	public function crop($width = NULL, $height = NULL, $offset_x = TRUE, $offset_y = TRUE)
+	public function crop($width = NULL, $height = NULL, $offset_x = NULL, $offset_y = NULL)
 	{
 		if ($width === NULL)
 		{
@@ -197,7 +199,7 @@ abstract class Image {
 		$width  = (int) $width;
 		$height = (int) $height;
 
-		if ($offset_x === TRUE)
+		if ($offset_x === NULL)
 		{
 			// Center the X offset
 			$offset_x = (int) ($this->width - $width) / 2;
@@ -208,7 +210,7 @@ abstract class Image {
 			$offset_x = (int) ($this->width - $width);
 		}
 
-		if ($offset_y === TRUE)
+		if ($offset_y === NULL)
 		{
 			// Center the Y offset
 			$offset_y = (int) ($this->height - $height) / 2;
@@ -219,18 +221,7 @@ abstract class Image {
 			$offset_y = (int) ($this->height - $height);
 		}
 
-		return $this;
-	}
-
-	/**
-	 * Sharpen the image.
-	 *
-	 * @param   integer  amount to sharpen: 1-100
-	 * @return  $this
-	 */
-	public function sharpen($amount)
-	{
-		$this->_do_sharpen((int) $amount);
+		$this->_do_crop($width, $height, $offset_x, $offset_y);
 
 		return $this;
 	}
@@ -267,6 +258,67 @@ abstract class Image {
 		}
 
 		$this->_do_rotate($degrees);
+
+		return $this;
+	}
+
+	/**
+	 * Sharpen the image.
+	 *
+	 * @param   integer  amount to sharpen: 1-100
+	 * @return  $this
+	 */
+	public function sharpen($amount)
+	{
+		// The amount must be in the range of 1 to 100
+		$amount = min(max($amount, 1), 100);
+
+		$this->_do_sharpen($amount);
+
+		return $this;
+	}
+
+	/**
+	 * Add a watermark to an image with a specified opacity.
+	 *
+	 * If no offset is specified, the center of the axis will be used.
+	 *
+	 * If an offset of -1 is specified, the bottom of the axis will be used.
+	 *
+	 * @param   object   watermark Image instance
+	 * @param   integer  offset from the left
+	 * @param   integer  offset from the top
+	 * @param   integer  opacity of watermark
+	 * @return  $this
+	 */
+	public function watermark(Image $watermark, $offset_x = NULL, $offset_y = NULL, $opacity = 100)
+	{
+		if ($offset_x === NULL)
+		{
+			// Center the X offset
+			$offset_x = (int) ($this->width - $watermark->width) / 2;
+		}
+		elseif ($offset_x === -1)
+		{
+			// Bottom the X offset
+			$offset_x = (int) ($this->width - $watermark->width);
+		}
+
+		if ($offset_y === NULL)
+		{
+			// Center the Y offset
+			$offset_y = (int) ($this->height - $watermark->height) / 2;
+		}
+		elseif ($offset_y === -1)
+		{
+			// Bottom the Y offset
+			$offset_y = (int) ($this->height - $watermark->height);
+		}
+
+		// The opacity must be in the range of 1 to 100
+		$opacity = min(max($opacity, 1), 100);
+
+		$this->_do_watermark($watermark, $offset_x, $offset_y, $opacity);
 
 		return $this;
 	}
@@ -352,6 +404,17 @@ abstract class Image {
 	 * @return  void
 	 */
 	abstract protected function _do_sharpen($amount);
+
+	/**
+	 * Execute a watermarking.
+	 *
+	 * @param   object   watermarking Image
+	 * @param   integer  offset from the left
+	 * @param   integer  offset from the top
+	 * @param   integer  opacity of watermark
+	 * @return  void
+	 */
+	abstract protected function _do_watermark(Image $image, $offset_x, $offset_y, $opacity);
 
 	/**
 	 * Execute a save.
