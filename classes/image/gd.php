@@ -1,20 +1,15 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-
+/**
+ * Image manipulation class using {@link  http://php.net/gd GD}.
+ *
+ * @package    Image
+ * @author     Kohana Team
+ * @copyright  (c) 2008-2009 Kohana Team
+ * @license    http://kohanaphp.com/license.html
+ */
 class Image_GD extends Image {
 
-	// Is the GD installation usable?
-	protected static $_checked = FALSE;
-
-	// Base64 encoded 1x1 transparent PNG
-	protected static $_blank_png =  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
-
-	/**
-	 * Checks that GD is installed and at least version 2.0.
-	 *
-	 * @throws  Kohana_Exception
-	 * @return  void
-	 */
-	public static function check_install()
+	public static function check()
 	{
 		if ( ! function_exists('gd_info'))
 		{
@@ -44,8 +39,7 @@ class Image_GD extends Image {
 				array(':version' => $version));
 		}
 
-		// Installed GD is acceptable
-		Image_GD::$_checked = TRUE;
+		return Image_GD::$_checked = TRUE;
 	}
 
 	// Temporary image resource
@@ -56,7 +50,7 @@ class Image_GD extends Image {
 		if ( ! Image_GD::$_checked)
 		{
 			// Run the install check
-			Image_GD::check_install();
+			Image_GD::check();
 		}
 
 		parent::__construct($file);
@@ -84,9 +78,17 @@ class Image_GD extends Image {
 		// Open the temporary image
 		$this->_image = $create($this->file);
 
-		// Prevent the alpha from being lost
-		imagealphablending($this->_image, TRUE);
+		// Preserve transparency when saving
 		imagesavealpha($this->_image, TRUE);
+	}
+
+	public function __destruct()
+	{
+		if (is_resource($this->_image))
+		{
+			// Free all resources
+			imagedestroy($this->_image);
+		}
 	}
 
 	protected function _do_resize($width, $height)
@@ -142,7 +144,7 @@ class Image_GD extends Image {
 		$image = $this->_create($width, $height);
 
 		// Execute the crop
-		if (imagecopyresampled($image, $this->_image, 0, 0, $offset_x, $offset_y, $width, $height, $this->width, $this->height))
+		if (imagecopyresampled($image, $this->_image, 0, 0, $offset_x, $offset_y, $width, $height, $width, $height))
 		{
 			// Swap the new image for the old one
 			imagedestroy($this->_image);
@@ -185,6 +187,8 @@ class Image_GD extends Image {
 		// White, with an alpha of 0
 		$transparent = imagecolorallocatealpha($this->_image, 255, 255, 255, 127);
 
+		// Yes, imagerotate() returns an image resource...
+		// PHP + consistency = (divide by zero error)
 		if ($image = imagerotate($this->_image, 360 - $degrees, $transparent))
 		{
 			// Swap the new image for the old one
@@ -197,12 +201,31 @@ class Image_GD extends Image {
 		}
 	}
 
+	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
+	{
+		// Create the watermark image resource
+		$overlay = imagecreatefromstring($watermark->render());
+
+		// Get the width and height of the watermark
+		$width  = imagesx($overlay);
+		$height = imagesy($overlay);
+
+		// Prevent the alpha from being lost
+		imagealphablending($this->_image, TRUE);
+
+		if (imagecopy($this->_image, $overlay, $offset_x, $offset_y, 0, 0, $width, $height))
+		{
+			// Destroy the overlay image
+			imagedestroy($overlay);
+		}
+	}
+
 	protected function _do_save($file, $quality)
 	{
 		// Get the extension of the file
-		$extension = pathinfo($file, PATHINFO_EXTENSION);
+		$type = pathinfo($file, PATHINFO_EXTENSION);
 
-		switch ($extension)
+		switch ($type)
 		{
 			case 'jpg':
 			case 'jpeg':
@@ -226,13 +249,9 @@ class Image_GD extends Image {
 			break;
 			default:
 				throw new Kohana_Exception('Installed GD does not support :type images',
-					array(':type' => $extension));
+					array(':type' => $type));
 			break;
 		}
-
-		// Prevent the alpha from being lost
-		imagealphablending($this->_image, TRUE);
-		imagesavealpha($this->_image, TRUE);
 
 		if (isset($quality))
 		{
@@ -246,22 +265,62 @@ class Image_GD extends Image {
 		}
 	}
 
-	protected function _create($width, $height)
+	protected function _do_render($type, $quality)
 	{
-		if (is_string(self::$_blank_png))
+		switch ($type)
 		{
-			// Decode and create the blank PNG
-			self::$_blank_png = imagecreatefromstring(base64_decode(self::$_blank_png));
+			case 'jpg':
+			case 'jpeg':
+				// Save a JPG file
+				$save = 'imagejpeg';
+			break;
+			case 'gif':
+				// GIFs do not a quality setting
+				unset($quality);
+
+				// Save a GIF file
+				$save = 'imagegif';
+			break;
+			case 'png':
+				// Use a compression level of 9
+				// Note that compression is not the same as quality!
+				$quality = 9;
+
+				// Save a PNG file
+				$save = 'imagepng';
+			break;
+			default:
+				throw new Kohana_Exception('Installed GD does not support :type images',
+					array(':type' => $type));
+			break;
 		}
 
+		// Capture the output
+		ob_start();
+
+		if (isset($quality))
+		{
+			// Save the image with a quality setting
+			$save($this->_image, NULL, $quality);
+		}
+		else
+		{
+			// Save the image with no quality
+			$save($this->_image, NULL);
+		}
+
+		return ob_get_clean();
+	}
+
+	protected function _create($width, $height)
+	{
 		// Create an empty image
 		$image = imagecreatetruecolor($width, $height);
 
-		// Resize the blank image
-		imagecopyresized($image, self::$_blank_png, 0, 0, 0, 0, $width, $height, 1, 1);
-
-		// Prevent the alpha from being lost
+		// Do not apply alpha blending
 		imagealphablending($image, FALSE);
+
+		// Save alpha levels
 		imagesavealpha($image, TRUE);
 
 		return $image;
