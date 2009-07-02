@@ -210,7 +210,23 @@ class Image_GD extends Image {
 		$width  = imagesx($overlay);
 		$height = imagesy($overlay);
 
+		if ($opacity < 100)
+		{
+			// Convert a range of 0-100 to 127-0
+			$opacity = round(abs(($opacity * 127 / 100) - 127));
+
+			// Allocate transparent black
+			$color = imagecolorallocatealpha($overlay, 255, 255, 255, $opacity);
+
+			// Change the transparency to black
+			imagelayereffect($overlay, IMG_EFFECT_OVERLAY);
+
+			// Fill the background with transparent black
+			imagefilledrectangle($overlay, 0, 0, $width, $height, $color);
+		}
+
 		// Prevent the alpha from being lost
+		// This must be applied to the background!
 		imagealphablending($this->_image, TRUE);
 
 		if (imagecopy($this->_image, $overlay, $offset_x, $offset_y, 0, 0, $width, $height))
