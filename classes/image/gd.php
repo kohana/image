@@ -184,21 +184,60 @@ class Image_GD extends Image {
 
 	protected function _do_rotate($degrees)
 	{
-		// White, with an alpha of 0
-		$transparent = imagecolorallocatealpha($this->_image, 255, 255, 255, 127);
+		// Transparent black will be used as the background for the uncovered region
+		$transparent = imagecolorallocatealpha($this->_image, 0, 0, 0, 127);
 
-		// Yes, imagerotate() returns an image resource...
-		// PHP + consistency = (divide by zero error)
-		if ($image = imagerotate($this->_image, 360 - $degrees, $transparent))
+		// Rotate, setting the transparent color
+		$image = imagerotate($this->_image, 360 - $degrees, $transparent, 1);
+
+		// Save the alpha of the rotated image
+		imagesavealpha($image, TRUE);
+
+		// Get the width and height of the rotated image
+		$width  = imagesx($image);
+		$height = imagesy($image);
+
+		if (imagecopymerge($this->_image, $image, 0, 0, 0, 0, $width, $height, 100))
 		{
 			// Swap the new image for the old one
 			imagedestroy($this->_image);
 			$this->_image = $image;
 
 			// Reset the width and height
-			$this->width  = imagesx($image);
-			$this->height = imagesy($image);
+			$this->width  = $width;
+			$this->height = $height;
 		}
+	}
+
+	protected function _do_flip($direction)
+	{
+		// Create the flipped image
+		$flipped = $this->_create($this->width, $this->height);
+
+		if ($direction === Image::HORIZONTAL)
+		{
+			for ($x = 0; $x < $this->width; $x++)
+			{
+				// Flip each row from top to bottom
+				imagecopy($flipped, $this->_image, $x, 0, $this->width - $x - 1, 0, 1, $this->height);
+			}
+		}
+		else
+		{
+			for ($y = 0; $y < $this->height; $y++)
+			{
+				// Flip each column from left to right
+				imagecopy($flipped, $this->_image, 0, $y, 0, $this->height - $y - 1, $this->width, 1);
+			}
+		}
+
+		// Swap the new image for the old one
+		imagedestroy($this->_image);
+		$this->_image = $flipped;
+
+		// Reset the width and height
+		$this->width  = imagesx($flipped);
+		$this->height = imagesy($flipped);
 	}
 
 	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
