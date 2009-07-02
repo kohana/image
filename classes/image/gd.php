@@ -101,8 +101,8 @@ class Image_GD extends Image {
 		if ($width > ($this->width / 2) AND $height > ($this->height / 2))
 		{
 			// The maximum reduction is 10% greater than the final size
-			$reduction_width  = (int) ($width  * 1.1);
-			$reduction_height = (int) ($height * 1.1);
+			$reduction_width  = round($width  * 1.1);
+			$reduction_height = round($height * 1.1);
 
 			while ($pre_width / 2 > $reduction_width AND $pre_height / 2 > $reduction_height)
 			{

@@ -159,8 +159,8 @@ abstract class Image {
 		}
 
 		// Convert the width and height to integers
-		$width  = (int) $width;
-		$height = (int) $height;
+		$width  = round($width);
+		$height = round($height);
 
 		$this->_do_resize($width, $height);
 
@@ -202,23 +202,23 @@ abstract class Image {
 		if ($offset_x === NULL)
 		{
 			// Center the X offset
-			$offset_x = (int) ($this->width - $width) / 2;
+			$offset_x = round(($this->width - $width) / 2);
 		}
 		elseif ($offset_x === -1)
 		{
 			// Bottom the X offset
-			$offset_x = (int) ($this->width - $width);
+			$offset_x = ($this->width - $width);
 		}
 
 		if ($offset_y === NULL)
 		{
 			// Center the Y offset
-			$offset_y = (int) ($this->height - $height) / 2;
+			$offset_y = round(($this->height - $height) / 2);
 		}
 		elseif ($offset_y === -1)
 		{
 			// Bottom the Y offset
-			$offset_y = (int) ($this->height - $height);
+			$offset_y = round($this->height - $height);
 		}
 
 		$this->_do_crop($width, $height, $offset_x, $offset_y);
@@ -296,23 +296,23 @@ abstract class Image {
 		if ($offset_x === NULL)
 		{
 			// Center the X offset
-			$offset_x = (int) ($this->width - $watermark->width) / 2;
+			$offset_x = round(($this->width - $watermark->width) / 2);
 		}
 		elseif ($offset_x === -1)
 		{
 			// Bottom the X offset
-			$offset_x = (int) ($this->width - $watermark->width);
+			$offset_x = ($this->width - $watermark->width);
 		}
 
 		if ($offset_y === NULL)
 		{
 			// Center the Y offset
-			$offset_y = (int) ($this->height - $watermark->height) / 2;
+			$offset_y = round(($this->height - $watermark->height) / 2);
 		}
 		elseif ($offset_y === -1)
 		{
 			// Bottom the Y offset
-			$offset_y = (int) ($this->height - $watermark->height);
+			$offset_y = round($this->height - $watermark->height);
 		}
 
 		// The opacity must be in the range of 1 to 100
