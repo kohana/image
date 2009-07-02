@@ -15,6 +15,10 @@ abstract class Image {
 	const HEIGHT = 0x03;
 	const AUTO   = 0x04;
 
+	// Flipping directions
+	const HORIZONTAL = 0x11;
+	const VERTICAL   = 0x12;
+
 	/**
 	 * @var  string  default driver: GD, ImageMagick, etc
 	 */
@@ -263,6 +267,25 @@ abstract class Image {
 	}
 
 	/**
+	 * Flip the image along the horizontal or vertical axis.
+	 *
+	 * @param   integer  direction: Image::HORIZONTAL, Image::VERTICAL
+	 * @return  $this
+	 */
+	public function flip($direction)
+	{
+		if ($direction !== Image::HORIZONTAL)
+		{
+			// Flip vertically
+			$direction = Image::VERTICAL;
+		}
+
+		$this->_do_flip($direction);
+
+		return $this;
+	}
+
+	/**
 	 * Sharpen the image.
 	 *
 	 * @param   integer  amount to sharpen: 1-100
@@ -396,6 +419,14 @@ abstract class Image {
 	 * @return  void
 	 */
 	abstract protected function _do_rotate($degrees);
+
+	/**
+	 * Execute a flip.
+	 *
+	 * @param   integer  direction to flip
+	 * @return  void
+	 */
+	abstract protected function _do_flip($direction);
 
 	/**
 	 * Execute a sharpen.
