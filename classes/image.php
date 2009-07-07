@@ -189,14 +189,14 @@ abstract class Image {
 	{
 		if ($width === NULL)
 		{
-			// Use the current width
-			$width = $this->width;
+			// Recalculate the width based on the height proportions
+			$width = $this->width * $height / $this->height;
 		}
 
 		if ($height === NULL)
 		{
-			// Use the current height
-			$height = $this->height;
+			// Recalculate the height based on the width
+			$height = $this->height * $width / $this->width;
 		}
 
 		// Convert the width and height to integers
@@ -223,6 +223,22 @@ abstract class Image {
 		{
 			// Bottom the Y offset
 			$offset_y = round($this->height - $height);
+		}
+
+		// Determine the maximum possible width and height
+		$max_width  = $this->width  - $offset_x;
+		$max_height = $this->height - $offset_y;
+
+		if ($width > $max_width)
+		{
+			// Use the maximum available width
+			$width = $max_width;
+		}
+
+		if ($height > $max_height)
+		{
+			// Use the maximum available height
+			$height = $max_height;
 		}
 
 		$this->_do_crop($width, $height, $offset_x, $offset_y);
