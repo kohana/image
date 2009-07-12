@@ -248,23 +248,19 @@ abstract class Image {
 	 * @param   mixed    offset from the top
 	 * @return  $this
 	 */
-	public function crop($width = NULL, $height = NULL, $offset_x = NULL, $offset_y = NULL)
+	public function crop($width, $height, $offset_x = NULL, $offset_y = NULL)
 	{
-		if ($width === NULL)
+		if ($width > $this->width)
 		{
-			// Recalculate the width based on the height proportions
-			$width = $this->width * $height / $this->height;
+			// Use the current width
+			$width = $this->width;
 		}
 
-		if ($height === NULL)
+		if ($height > $this->height)
 		{
-			// Recalculate the height based on the width
-			$height = $this->height * $width / $this->width;
+			// Use the current height
+			$height = $this->height;
 		}
-
-		// Convert the width and height to integers
-		$width  = (int) $width;
-		$height = (int) $height;
 
 		if ($offset_x === NULL)
 		{
@@ -274,12 +270,12 @@ abstract class Image {
 		elseif ($offset_x === TRUE)
 		{
 			// Bottom the X offset
-			$offset_x = round($this->width - $width);
+			$offset_x = $this->width - $width;
 		}
 		elseif ($offset_x < 0)
 		{
 			// Set the X offset from the right
-			$offset_x = ($this->width - $width + $offset_x);
+			$offset_x = $this->width - $width + $offset_x;
 		}
 
 		if ($offset_y === NULL)
@@ -290,12 +286,12 @@ abstract class Image {
 		elseif ($offset_y === TRUE)
 		{
 			// Bottom the Y offset
-			$offset_y = round($this->height - $height);
+			$offset_y = $this->height - $height;
 		}
 		elseif ($offset_y < 0)
 		{
 			// Set the Y offset from the bottom
-			$offset_y = ($this->height - $height + $offset_y);
+			$offset_y = $this->height - $height + $offset_y;
 		}
 
 		// Determine the maximum possible width and height
