@@ -390,8 +390,7 @@ abstract class Image {
 	 * Add a watermark to an image with a specified opacity.
 	 *
 	 * If no offset is specified, the center of the axis will be used.
-	 *
-	 * If an offset of -1 is specified, the bottom of the axis will be used.
+	 * If an offset of TRUE is specified, the bottom of the axis will be used.
 	 *
 	 * @param   object   watermark Image instance
 	 * @param   integer  offset from the left
@@ -406,10 +405,15 @@ abstract class Image {
 			// Center the X offset
 			$offset_x = round(($this->width - $watermark->width) / 2);
 		}
-		elseif ($offset_x === -1)
+		elseif ($offset_x === TRUE)
 		{
 			// Bottom the X offset
-			$offset_x = ($this->width - $watermark->width);
+			$offset_x = $this->width - $watermark->width;
+		}
+		elseif ($offset_x < 0)
+		{
+			// Set the X offset from the right
+			$offset_x = $this->width - $watermark->width + $offset_x;
 		}
 
 		if ($offset_y === NULL)
@@ -417,10 +421,15 @@ abstract class Image {
 			// Center the Y offset
 			$offset_y = round(($this->height - $watermark->height) / 2);
 		}
-		elseif ($offset_y === -1)
+		elseif ($offset_y === TRUE)
 		{
 			// Bottom the Y offset
-			$offset_y = round($this->height - $watermark->height);
+			$offset_y = $this->height - $watermark->height;
+		}
+		elseif ($offset_y < 0)
+		{
+			// Set the Y offset from the bottom
+			$offset_y = $this->height - $watermark->height + $offset_y;
 		}
 
 		// The opacity must be in the range of 1 to 100
