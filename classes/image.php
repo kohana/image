@@ -10,10 +10,11 @@
 abstract class Image {
 
 	// Resizing contraints
-	const NONE   = 0x01;
-	const WIDTH  = 0x02;
-	const HEIGHT = 0x03;
-	const AUTO   = 0x04;
+	const NONE    = 0x01;
+	const WIDTH   = 0x02;
+	const HEIGHT  = 0x03;
+	const AUTO    = 0x04;
+	const INVERSE = 0x05;
 
 	// Flipping directions
 	const HORIZONTAL = 0x11;
@@ -114,6 +115,30 @@ abstract class Image {
 	 */
 	public function resize($width = NULL, $height = NULL, $master = NULL)
 	{
+		if ($master === NULL)
+		{
+			// Choose the master dimension automatically
+			$master = Image::AUTO;
+		}
+		elseif ($master === Image::INVERSE)
+		{
+			if ($this->width === $this->height)
+			{
+				// Automatically choose the master dimension
+				$master = Image::AUTO;
+			}
+			elseif ($this->width > $this->height)
+			{
+				// Keep the image from becoming too short
+				$master = Image::HEIGHT;
+			}
+			else
+			{
+				// Keep the image from becoming too wide
+				$master = Image::WIDTH;
+			}
+		}
+
 		if (empty($width))
 		{
 			if ($master === Image::NONE)
@@ -144,9 +169,9 @@ abstract class Image {
 			}
 		}
 
-		if ($master === NULL OR $master === Image::AUTO)
+		if ($master === Image::AUTO)
 		{
-			// Reset the master dim to the correct direction
+			// Choose direction with the greatest reduction ratio
 			$master = ($this->width / $width) > ($this->height / $height) ? Image::WIDTH : Image::HEIGHT;
 		}
 
