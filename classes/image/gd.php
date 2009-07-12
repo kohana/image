@@ -278,95 +278,96 @@ class Image_GD extends Image {
 	protected function _do_save($file, $quality)
 	{
 		// Get the extension of the file
-		$type = pathinfo($file, PATHINFO_EXTENSION);
+		$extension = pathinfo($file, PATHINFO_EXTENSION);
 
-		switch ($type)
+		// Get the save function and IMAGETYPE
+		list($save, $type) = $this->_save_function($extension);
+
+		// Save the image to a file
+		$status = isset($quality) ? $save($this->_image, NULL, $quality) : $save($this->_image, NULL);
+
+		if ($status === TRUE AND $type !== $this->type)
 		{
-			case 'jpg':
-			case 'jpeg':
-				// Save a JPG file
-				$save = 'imagejpeg';
-			break;
-			case 'gif':
-				// GIFs do not a quality setting
-				unset($quality);
-
-				// Save a GIF file
-				$save = 'imagegif';
-			break;
-			case 'png':
-				// Use a compression level of 9
-				// Note that compression is not the same as quality!
-				$quality = 9;
-
-				// Save a PNG file
-				$save = 'imagepng';
-			break;
-			default:
-				throw new Kohana_Exception('Installed GD does not support :type images',
-					array(':type' => $type));
-			break;
+			// Reset the image type and mime type
+			$this->type = $type;
+			$this->mime = image_type_to_mime_type($type);
 		}
 
-		if (isset($quality))
-		{
-			// Save the image with a quality setting
-			return $save($this->_image, $file, $quality);
-		}
-		else
-		{
-			// Save the image with no quality
-			return $save($this->_image, $file);
-		}
+		return TRUE;
 	}
 
 	protected function _do_render($type, $quality)
 	{
-		switch ($type)
-		{
-			case 'jpg':
-			case 'jpeg':
-				// Save a JPG file
-				$save = 'imagejpeg';
-			break;
-			case 'gif':
-				// GIFs do not a quality setting
-				unset($quality);
-
-				// Save a GIF file
-				$save = 'imagegif';
-			break;
-			case 'png':
-				// Use a compression level of 9
-				// Note that compression is not the same as quality!
-				$quality = 9;
-
-				// Save a PNG file
-				$save = 'imagepng';
-			break;
-			default:
-				throw new Kohana_Exception('Installed GD does not support :type images',
-					array(':type' => $type));
-			break;
-		}
+		// Get the save function and IMAGETYPE
+		list($save, $type) = $this->_save_function($type, $quality);
 
 		// Capture the output
 		ob_start();
 
-		if (isset($quality))
+		// Render the image
+		$status = isset($quality) ? $save($this->_image, NULL, $quality) : $save($this->_image, NULL);
+
+		if ($status === TRUE AND $type !== $this->type)
 		{
-			// Save the image with a quality setting
-			$save($this->_image, NULL, $quality);
-		}
-		else
-		{
-			// Save the image with no quality
-			$save($this->_image, NULL);
+			// Reset the image type and mime type
+			$this->type = $type;
+			$this->mime = image_type_to_mime_type($type);
 		}
 
 		return ob_get_clean();
 	}
 
+	/**
+	 * Get the GD saving function and image type for this extension.
+	 * Also normalizes the quality setting
+	 *
+	 * @throws  Kohana_Exception
+	 * @param   string   image type: png, jpg, etc
+	 * @param   integer  image quality
+	 * @return  array    save function, IMAGETYPE_* constant
+	 */
+	protected function _save_function($extension, & $quality)
+	{
+		switch ($extension)
+		{
+			case 'jpg':
+			case 'jpeg':
+				// Save a JPG file
+				$save = 'imagejpeg';
+				$type = IMAGETYPE_JPEG;
+			break;
+			case 'gif':
+				// Save a GIF file
+				$save = 'imagegif';
+				$type = IMAGETYPE_GIF;
+
+				// GIFs do not a quality setting
+				$quality = NULL;
+			break;
+			case 'png':
+				// Save a PNG file
+				$save = 'imagepng';
+				$type = IMAGETYPE_PNG;
+
+				// Use a compression level of 9 (does not affect quality!)
+				$quality = 9;
+			break;
+			default:
+				throw new Kohana_Exception('Installed GD does not support :type images',
+					array(':type' => $type));
+			break;
+		}
+
+		return array($save, $type);
+	}
+
+	/**
+	 * Create an empty image with the given width and height.
+	 *
+	 * @param   integer   image width
+	 * @param   integer   image height
+	 * @return  resource
+	 */
 	protected function _create($width, $height)
 	{
 		// Create an empty image
