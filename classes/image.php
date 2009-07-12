@@ -102,6 +102,45 @@ abstract class Image {
 		$this->width  = $info[0];
 		$this->height = $info[1];
 		$this->type   = $info[2];
+		$this->mime   = image_type_to_mime_type($this->type);
+	}
+
+	/**
+	 * Render the current image.
+	 *
+	 * The output of this function is binary and must be rendered with the
+	 * appropriate Content-Type header or it will not be displayed correctly!
+	 *
+	 * @return  string
+	 */
+	public function __toString()
+	{
+		try
+		{
+			// Render the current image
+			return $this->render();
+		}
+		catch (Exception $e)
+		{
+			if (is_object(Kohana::$log))
+			{
+				// Get the exception variables
+				$type    = get_class($e);
+				$code    = $e->getCode();
+				$message = $e->getMessage();
+				$file    = $e->getFile();
+				$line    = $e->getLine();
+
+				// Set the text version of the exception
+				$text = "{$type} [ {$code} ]: {$message} ".Kohana::debug_path($file)." [ {$line} ]";
+
+				// Add this exception to the log
+				Kohana::$log->add(Kohana::ERROR, $text);
+			}
+
+			// Showing any kind of error will be "inside" image data
+			return '';
+		}
 	}
 
 	/**
