@@ -201,8 +201,7 @@ abstract class Image {
 	 * omitted and the current width or height will be used.
 	 *
 	 * If no offset is specified, the center of the axis will be used.
-	 *
-	 * If an offset of -1 is specified, the bottom of the axis will be used.
+	 * If an offset of TRUE is specified, the bottom of the axis will be used.
 	 *
 	 * @param   integer  new width
 	 * @param   integer  new height
@@ -233,10 +232,15 @@ abstract class Image {
 			// Center the X offset
 			$offset_x = round(($this->width - $width) / 2);
 		}
-		elseif ($offset_x === -1)
+		elseif ($offset_x === TRUE)
 		{
 			// Bottom the X offset
-			$offset_x = ($this->width - $width);
+			$offset_x = round($this->width - $width);
+		}
+		elseif ($offset_x < 0)
+		{
+			// Set the X offset from the right
+			$offset_x = ($this->width - $width + $offset_x);
 		}
 
 		if ($offset_y === NULL)
@@ -244,10 +248,15 @@ abstract class Image {
 			// Center the Y offset
 			$offset_y = round(($this->height - $height) / 2);
 		}
-		elseif ($offset_y === -1)
+		elseif ($offset_y === TRUE)
 		{
 			// Bottom the Y offset
 			$offset_y = round($this->height - $height);
+		}
+		elseif ($offset_y < 0)
+		{
+			// Set the Y offset from the bottom
+			$offset_y = ($this->height - $height + $offset_y);
 		}
 
 		// Determine the maximum possible width and height
