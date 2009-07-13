@@ -124,18 +124,11 @@ abstract class Image {
 		{
 			if (is_object(Kohana::$log))
 			{
-				// Get the exception variables
-				$type    = get_class($e);
-				$code    = $e->getCode();
-				$message = $e->getMessage();
-				$file    = $e->getFile();
-				$line    = $e->getLine();
-
-				// Set the text version of the exception
-				$text = "{$type} [ {$code} ]: {$message} ".Kohana::debug_path($file)." [ {$line} ]";
+				// Get the text of the exception
+				$error = Kohana::exception_text($e);
 
 				// Add this exception to the log
-				Kohana::$log->add(Kohana::ERROR, $text);
+				Kohana::$log->add(Kohana::ERROR, $error);
 			}
 
 			// Showing any kind of error will be "inside" image data
