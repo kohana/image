@@ -156,32 +156,6 @@ class Image_GD extends Image {
 		}
 	}
 
-	protected function _do_sharpen($amount)
-	{
-		// Amount should be in the range of 18-10
-		$amount = round(abs(-18 + ($amount * 0.08)), 2);
-
-		// Gaussian blur matrix
-		$matrix = array
-		(
-			array(-1,   -1,    -1),
-			array(-1, $amount, -1),
-			array(-1,   -1,    -1),
-		);
-
-		// Perform the sharpen
-		if ($image = imageconvolution($this->_image, $matrix, $amount - 8, 0))
-		{
-			// Swap the new image for the old one
-			imagedestroy($this->_image);
-			$this->_image = $image;
-
-			// Reset the width and height
-			$this->width  = imagesx($image);
-			$this->height = imagesy($image);
-		}
-	}
-
 	protected function _do_rotate($degrees)
 	{
 		// Transparent black will be used as the background for the uncovered region
@@ -240,6 +214,87 @@ class Image_GD extends Image {
 		$this->height = imagesy($flipped);
 	}
 
+	protected function _do_sharpen($amount)
+	{
+		// Amount should be in the range of 18-10
+		$amount = round(abs(-18 + ($amount * 0.08)), 2);
+
+		// Gaussian blur matrix
+		$matrix = array
+		(
+			array(-1,   -1,    -1),
+			array(-1, $amount, -1),
+			array(-1,   -1,    -1),
+		);
+
+		// Perform the sharpen
+		if ($image = imageconvolution($this->_image, $matrix, $amount - 8, 0))
+		{
+			// Swap the new image for the old one
+			imagedestroy($this->_image);
+			$this->_image = $image;
+
+			// Reset the width and height
+			$this->width  = imagesx($image);
+			$this->height = imagesy($image);
+		}
+	}
+
+	protected function _do_reflection($height, $opacity)
+	{
+		// Convert an opacity range of 0-100 to 127-0
+		$opacity = round(abs(($opacity * 127 / 100) - 127));
+
+		if ($opacity < 126)
+		{
+			// Calculate the opacity stepping
+			$stepping = (127 - $opacity) / $height;
+		}
+		else
+		{
+			// Avoid a "divide by zero" error
+			$stepping = 127 / $height;
+		}
+
+		// Create the reflection image
+		$reflection = $this->_create($this->width, $this->height + $height);
+
+		// Copy the image to the reflection
+		imagecopy($reflection, $this->_image, 0, 0, 0, 0, $this->width, $this->height);
+
+		for ($offset = 0; $height >= $offset; $offset++)
+		{
+			// Read the next line down
+			$src_y = $this->height - $offset - 1;
+
+			// Place the line at the bottom of the reflection
+			$dst_y = $this->height + $offset;
+
+			// Set the opacity for this line
+			$dst_opacity = round($opacity + ($stepping * $offset));
+
+			// Create a single line of the image
+			$line = $this->_create($this->width, 1);
+
+			// Copy a single line from the current image into the line
+			imagecopy($line, $this->_image, 0, 0, 0, $src_y, $this->width, 1);
+
+			// Colorize the line to add the correct alpha level
+			imagefilter($line, IMG_FILTER_COLORIZE, 0, 0, 0, $dst_opacity);
+
+			// Copy a the line into the reflection
+			imagecopy($reflection, $line, 0, $dst_y, 0, 0, $this->width, 1);
+		}
+
+		// Swap the new image for the old one
+		imagedestroy($this->_image);
+		$this->_image = $reflection;
+
+		// Reset the width and height
+		$this->width  = imagesx($reflection);
+		$this->height = imagesy($reflection);
+	}
+
 	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
 	{
 		// Create the watermark image resource
@@ -251,16 +306,16 @@ class Image_GD extends Image {
 
 		if ($opacity < 100)
 		{
-			// Convert a range of 0-100 to 127-0
+			// Convert an opacity range of 0-100 to 127-0
 			$opacity = round(abs(($opacity * 127 / 100) - 127));
 
-			// Allocate transparent black
+			// Allocate transparent white
 			$color = imagecolorallocatealpha($overlay, 255, 255, 255, $opacity);
 
-			// Change the transparency to black
+			// The transparent image will overlay the watermark
 			imagelayereffect($overlay, IMG_EFFECT_OVERLAY);
 
-			// Fill the background with transparent black
+			// Fill the background with transparent white
 			imagefilledrectangle($overlay, 0, 0, $width, $height, $color);
 		}
 

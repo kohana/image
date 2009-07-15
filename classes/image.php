@@ -380,6 +380,26 @@ abstract class Image {
 	}
 
 	/**
+	 * Add a reflection to an image.
+	 *
+	 * @param   integer   height of the reflection
+	 * @param   integer   reflection opacity
+	 * @return  $this
+	 */
+	public function reflection($height = NULL, $opacity = 100)
+	{
+		if ($height === NULL OR $height > $this->height)
+		{
+			// Use the current height
+			$height = $this->height;
+		}
+
+		$this->_do_reflection($height, $opacity);
+
+		return $this;
+	}
+
+	/**
 	 * Add a watermark to an image with a specified opacity.
 	 *
 	 * If no offset is specified, the center of the axis will be used.
@@ -522,6 +542,15 @@ abstract class Image {
 	 * @return  void
 	 */
 	abstract protected function _do_sharpen($amount);
+
+	/**
+	 * Execute a reflection.
+	 * 
+	 * @param   integer   reflection height
+	 * @param   integer   reflection opacity
+	 * @return  void
+	 */
+	abstract protected function _do_reflection($height, $opacity);
 
 	/**
 	 * Execute a watermarking.
