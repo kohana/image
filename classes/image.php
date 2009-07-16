@@ -380,13 +380,16 @@ abstract class Image {
 	}
 
 	/**
-	 * Add a reflection to an image.
+	 * Add a reflection to an image. The most opaque part of the reflection
+	 * will be equal to the opacity setting and fade out to full transparent.
+	 * By default, the reflection will be most transparent at the 
 	 *
-	 * @param   integer   height of the reflection
-	 * @param   integer   reflection opacity
+	 * @param   integer   reflection height
+	 * @param   integer   reflection opacity: 0-100
+	 * @param   boolean   TRUE to fade in, FALSE to fade out
 	 * @return  $this
 	 */
-	public function reflection($height = NULL, $opacity = 100)
+	public function reflection($height = NULL, $opacity = 100, $fade_in = FALSE)
 	{
 		if ($height === NULL OR $height > $this->height)
 		{
@@ -394,7 +397,7 @@ abstract class Image {
 			$height = $this->height;
 		}
 
-		$this->_do_reflection($height, $opacity);
+		$this->_do_reflection($height, $opacity, $fade_in);
 
 		return $this;
 	}
@@ -548,9 +551,10 @@ abstract class Image {
 	 * 
 	 * @param   integer   reflection height
 	 * @param   integer   reflection opacity
+	 * @param   boolean   TRUE to fade out, FALSE to fade in
 	 * @return  void
 	 */
-	abstract protected function _do_reflection($height, $opacity);
+	abstract protected function _do_reflection($height, $opacity, $fade_in);
 
 	/**
 	 * Execute a watermarking.

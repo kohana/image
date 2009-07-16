@@ -240,12 +240,12 @@ class Image_GD extends Image {
 		}
 	}
 
-	protected function _do_reflection($height, $opacity)
+	protected function _do_reflection($height, $opacity, $fade_in)
 	{
 		// Convert an opacity range of 0-100 to 127-0
 		$opacity = round(abs(($opacity * 127 / 100) - 127));
 
-		if ($opacity < 126)
+		if ($opacity < 127)
 		{
 			// Calculate the opacity stepping
 			$stepping = (127 - $opacity) / $height;
@@ -270,8 +270,16 @@ class Image_GD extends Image {
 			// Place the line at the bottom of the reflection
 			$dst_y = $this->height + $offset;
 
-			// Set the opacity for this line
-			$dst_opacity = round($opacity + ($stepping * $offset));
+			if ($fade_in === TRUE)
+			{
+				// Start with the most transparent line first
+				$dst_opacity = round($opacity + ($stepping * ($height - $offset)));
+			}
+			else
+			{
+				// Start with the most opaque line first
+				$dst_opacity = round($opacity + ($stepping * $offset));
+			}
 
 			// Create a single line of the image
 			$line = $this->_create($this->width, 1);
