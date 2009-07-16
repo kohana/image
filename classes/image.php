@@ -382,7 +382,7 @@ abstract class Image {
 	/**
 	 * Add a reflection to an image. The most opaque part of the reflection
 	 * will be equal to the opacity setting and fade out to full transparent.
-	 * By default, the reflection will be most transparent at the 
+	 * By default, the reflection will be most transparent at the
 	 *
 	 * @param   integer   reflection height
 	 * @param   integer   reflection opacity: 0-100
@@ -452,6 +452,35 @@ abstract class Image {
 		$opacity = min(max($opacity, 1), 100);
 
 		$this->_do_watermark($watermark, $offset_x, $offset_y, $opacity);
+
+		return $this;
+	}
+
+	/**
+	 * Set the background color of an image.
+	 *
+	 * @param   string   hexadecimal color value
+	 * @param   integer  background opacity: 0-100
+	 * @return  $this
+	 */
+	public function background($color, $opacity = 100)
+	{
+		if ($color[0] === '#')
+		{
+			// Remove the pound
+			$color = substr($color, 1);
+		}
+
+		if (strlen($color) === 3)
+		{
+			// Convert shorthand into longhand hex notation
+			$color = preg_replace('/./', '$0$0', $color);
+		}
+
+		// Convert the hex into RGB values
+		list ($r, $g, $b) = array_map('hexdec', str_split($color, 2));
+
+		$this->_do_background($r, $b, $b, $opacity);
 
 		return $this;
 	}
@@ -548,7 +577,7 @@ abstract class Image {
 
 	/**
 	 * Execute a reflection.
-	 * 
+	 *
 	 * @param   integer   reflection height
 	 * @param   integer   reflection opacity
 	 * @param   boolean   TRUE to fade out, FALSE to fade in
@@ -566,6 +595,17 @@ abstract class Image {
 	 * @return  void
 	 */
 	abstract protected function _do_watermark(Image $image, $offset_x, $offset_y, $opacity);
+
+	/**
+	 * Execute a background.
+	 *
+	 * @param   integer  red
+	 * @param   integer  green
+	 * @param   integer  blue
+	 * @param   integer  opacity
+	 * @return void
+	 */
+	abstract protected function _do_background($r, $g, $b, $opacity);
 
 	/**
 	 * Execute a save.

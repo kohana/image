@@ -327,14 +327,39 @@ class Image_GD extends Image {
 			imagefilledrectangle($overlay, 0, 0, $width, $height, $color);
 		}
 
-		// Prevent the alpha from being lost
-		// This must be applied to the background!
+		// Alpha blending must be enabled on the background!
 		imagealphablending($this->_image, TRUE);
 
 		if (imagecopy($this->_image, $overlay, $offset_x, $offset_y, 0, 0, $width, $height))
 		{
 			// Destroy the overlay image
 			imagedestroy($overlay);
+		}
+	}
+
+	protected function _do_background($r, $g, $b, $opacity)
+	{
+		// Convert an opacity range of 0-100 to 127-0
+		$opacity = round(abs(($opacity * 127 / 100) - 127));
+
+		// Create a new background
+		$background = $this->_create($this->width, $this->height);
+
+		// Allocate the color
+		$color = imagecolorallocatealpha($background, $r, $g, $b, $opacity);
+
+		// Fill the image with white
+		imagefilledrectangle($background, 0, 0, $this->width, $this->height, $color);
+
+		// Alpha blending must be enabled on the background!
+		imagealphablending($background, TRUE);
+
+		// Copy the image onto a white background to remove all transparency
+		if (imagecopy($background, $this->_image, 0, 0, 0, 0, $this->width, $this->height))
+		{
+			// Swap the new image for the old one
+			imagedestroy($this->_image);
+			$this->_image = $background;
 		}
 	}
 
