@@ -480,7 +480,7 @@ abstract class Image {
 		// Convert the hex into RGB values
 		list ($r, $g, $b) = array_map('hexdec', str_split($color, 2));
 
-		$this->_do_background($r, $b, $b, $opacity);
+		$this->_do_background($r, $g, $b, $opacity);
 
 		return $this;
 	}
