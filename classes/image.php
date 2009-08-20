@@ -501,13 +501,24 @@ abstract class Image {
 			$file = $this->file;
 		}
 
-		// Get the directory of the file
-		$directory = realpath(pathinfo($file, PATHINFO_DIRNAME));
-
-		if ( ! is_dir($directory) OR ! is_writable($directory))
+		if (is_file($file))
 		{
-			throw new Kohana_Exception('Directory must be writable: :directory',
-				array(':directory' => Kohana::debug_path($directory)));
+			if ( ! is_writable($file))
+			{
+				throw new Kohana_Exception('File must be writable: :file',
+					array(':file' => Kohana::debug_path($file)));
+			}
+		}
+		else
+		{
+			// Get the directory of the file
+			$directory = realpath(pathinfo($file, PATHINFO_DIRNAME));
+
+			if ( ! is_dir($directory) OR ! is_writable($directory))
+			{
+				throw new Kohana_Exception('Directory must be writable: :directory',
+					array(':directory' => Kohana::debug_path($directory)));
+			}
 		}
 
 		return $this->_do_save($file, $quality);
