@@ -372,7 +372,7 @@ class Image_GD extends Image {
 		list($save, $type) = $this->_save_function($extension, $quality);
 
 		// Save the image to a file
-		$status = isset($quality) ? $save($this->_image, NULL, $quality) : $save($this->_image, NULL);
+		$status = isset($quality) ? $save($this->_image, $file, $quality) : $save($this->_image, $file);
 
 		if ($status === TRUE AND $type !== $this->type)
 		{
