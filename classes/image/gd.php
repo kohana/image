@@ -369,7 +369,7 @@ class Image_GD extends Image {
 		$extension = pathinfo($file, PATHINFO_EXTENSION);
 
 		// Get the save function and IMAGETYPE
-		list($save, $type) = $this->_save_function($extension);
+		list($save, $type) = $this->_save_function($extension, $quality);
 
 		// Save the image to a file
 		$status = isset($quality) ? $save($this->_image, NULL, $quality) : $save($this->_image, NULL);
