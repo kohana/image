@@ -16,6 +16,25 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('GD is either not installed or not enabled, check your configuration');
 		}
 
+		if (defined('GD_BUNDLED'))
+		{
+			// Get the version via a constant, available in PHP 5.
+			$bundled = GD_BUNDLED;
+		}
+		else
+		{
+			// Get the version information
+			$bundled = current(gd_info());
+
+			// Extract the bundled status
+			$bundled = (bool) preg_match('/\bbundled\b/i', $bundled);
+		}
+
+		if ( ! $bundled)
+		{
+			throw new Kohana_Exception('Image_GD requires GD to be bundled with PHP');
+		}
+
 		if (defined('GD_VERSION'))
 		{
 			// Get the version via a constant, available in PHP 5.2.4+
