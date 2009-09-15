@@ -228,15 +228,11 @@ class Kohana_Image_GD extends Image {
 		);
 
 		// Perform the sharpen
-		if ($image = imageconvolution($this->_image, $matrix, $amount - 8, 0))
+		if (imageconvolution($this->_image, $matrix, $amount - 8, 0))
 		{
-			// Swap the new image for the old one
-			imagedestroy($this->_image);
-			$this->_image = $image;
-
 			// Reset the width and height
-			$this->width  = imagesx($image);
-			$this->height = imagesy($image);
+			$this->width  = imagesx($this->_image);
+			$this->height = imagesy($this->_image);
 		}
 	}
 
