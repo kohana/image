@@ -399,7 +399,7 @@ abstract class Kohana_Image {
 
 		// The opacity must be in the range of 0 to 100
 		$opacity = min(max($opacity, 0), 100);
-		
+
 		$this->_do_reflection($height, $opacity, $fade_in);
 
 		return $this;
@@ -485,7 +485,7 @@ abstract class Kohana_Image {
 
 		// The opacity must be in the range of 0 to 100
 		$opacity = min(max($opacity, 0), 100);
-		
+
 		$this->_do_background($r, $g, $b, $opacity);
 
 		return $this;
@@ -526,7 +526,7 @@ abstract class Kohana_Image {
 					array(':directory' => Kohana::debug_path($directory)));
 			}
 		}
-		
+
 		// The quality must be in the range of 1 to 100
 		$quality = min(max($quality, 1), 100);
 
