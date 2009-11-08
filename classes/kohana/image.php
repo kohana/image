@@ -382,7 +382,7 @@ abstract class Kohana_Image {
 	/**
 	 * Add a reflection to an image. The most opaque part of the reflection
 	 * will be equal to the opacity setting and fade out to full transparent.
-	 * By default, the reflection will be most transparent at the
+	 * By default, the reflection will be most transparent at the top
 	 *
 	 * @param   integer   reflection height
 	 * @param   integer   reflection opacity: 0-100
@@ -397,6 +397,9 @@ abstract class Kohana_Image {
 			$height = $this->height;
 		}
 
+		// The opacity must be in the range of 0 to 100
+		$opacity = min(max($opacity, 0), 100);
+		
 		$this->_do_reflection($height, $opacity, $fade_in);
 
 		return $this;
@@ -411,7 +414,7 @@ abstract class Kohana_Image {
 	 * @param   object   watermark Image instance
 	 * @param   integer  offset from the left
 	 * @param   integer  offset from the top
-	 * @param   integer  opacity of watermark
+	 * @param   integer  opacity of watermark: 1-100
 	 * @return  $this
 	 */
 	public function watermark(Image $watermark, $offset_x = NULL, $offset_y = NULL, $opacity = 100)
@@ -480,6 +483,9 @@ abstract class Kohana_Image {
 		// Convert the hex into RGB values
 		list ($r, $g, $b) = array_map('hexdec', str_split($color, 2));
 
+		// The opacity must be in the range of 0 to 100
+		$opacity = min(max($opacity, 0), 100);
+		
 		$this->_do_background($r, $g, $b, $opacity);
 
 		return $this;
@@ -520,6 +526,9 @@ abstract class Kohana_Image {
 					array(':directory' => Kohana::debug_path($directory)));
 			}
 		}
+		
+		// The quality must be in the range of 1 to 100
+		$quality = min(max($quality, 1), 100);
 
 		return $this->_do_save($file, $quality);
 	}
