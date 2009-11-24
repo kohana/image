@@ -9,6 +9,9 @@
  */
 class Kohana_Image_GD extends Image {
 
+	// Is GD bundled or separate?
+	protected static $_bundled;
+
 	public static function check()
 	{
 		if ( ! function_exists('gd_info'))
@@ -19,20 +22,15 @@ class Kohana_Image_GD extends Image {
 		if (defined('GD_BUNDLED'))
 		{
 			// Get the version via a constant, available in PHP 5.
-			$bundled = GD_BUNDLED;
+			Image_GD::$_bundled = GD_BUNDLED;
 		}
 		else
 		{
 			// Get the version information
-			$bundled = current(gd_info());
+			$info = gd_info();
 
 			// Extract the bundled status
-			$bundled = (bool) preg_match('/\bbundled\b/i', $bundled);
-		}
-
-		if ( ! $bundled)
-		{
-			throw new Kohana_Exception('Image_GD requires GD to be bundled with PHP');
+			Image_GD::$_bundled = (bool) preg_match('/\bbundled\b/i', $info['GD Version']);
 		}
 
 		if (defined('GD_VERSION'))
@@ -43,19 +41,19 @@ class Kohana_Image_GD extends Image {
 		else
 		{
 			// Get the version information
-			$version = current(gd_info());
+			$info = gd_info();
 
 			// Extract the version number
-			preg_match('/\d+\.\d+(?:\.\d+)?/', $version, $matches);
+			preg_match('/\d+\.\d+(?:\.\d+)?/', $info['GD Version'], $matches);
 
 			// Get the major version
 			$version = $matches[0];
 		}
 
-		if ( ! version_compare($version, '2.0', '>='))
+		if ( ! version_compare($version, '2.0.1', '>='))
 		{
-			throw new Kohana_Exception('Image_GD requires GD version 2.0 or greater, you have :version',
-				array(':version' => $version));
+			throw new Kohana_Exception('Image_GD requires GD version :required or greater, you have :version',
+				array('required' => '2.0.1', ':version' => $version));
 		}
 
 		return Image_GD::$_checked = TRUE;
@@ -177,6 +175,12 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_rotate($degrees)
 	{
+		if ( ! Image_GD::$_bundled)
+		{
+			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
+				array(':function' => 'imagerotate'));
+		}
+
 		// Transparent black will be used as the background for the uncovered region
 		$transparent = imagecolorallocatealpha($this->_image, 0, 0, 0, 127);
 
@@ -235,6 +239,12 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_sharpen($amount)
 	{
+		if ( ! Image_GD::$_bundled)
+		{
+			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
+				array(':function' => 'imageconvolution'));
+		}
+
 		// Amount should be in the range of 18-10
 		$amount = round(abs(-18 + ($amount * 0.08)), 2);
 
@@ -257,6 +267,12 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_reflection($height, $opacity, $fade_in)
 	{
+		if ( ! Image_GD::$_bundled)
+		{
+			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
+				array(':function' => 'imagefilter'));
+		}
+
 		// Convert an opacity range of 0-100 to 127-0
 		$opacity = round(abs(($opacity * 127 / 100) - 127));
 
@@ -320,6 +336,12 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
 	{
+		if ( ! Image_GD::$_bundled)
+		{
+			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
+				array(':function' => 'imagelayereffect'));
+		}
+
 		// Create the watermark image resource
 		$overlay = imagecreatefromstring($watermark->render());
 
