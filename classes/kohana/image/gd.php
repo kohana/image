@@ -95,8 +95,10 @@ class Kohana_Image_GD extends Image {
 				array(':type' => image_type_to_extension($this->type, FALSE)));
 		}
 		
+		// Save function for future use
 		$this->_create_function = $create;
 		
+		// Save filename for lazy loading
 		$this->_image = $this->file;
 	}
 
@@ -115,6 +117,7 @@ class Kohana_Image_GD extends Image {
 		{
 			// Gets create function 
 			$create = $this->_create_function;
+			
 			// Open the temporary image
 			$this->_image = $create($this->file);
 	
