@@ -61,6 +61,9 @@ class Kohana_Image_GD extends Image {
 
 	// Temporary image resource
 	protected $_image;
+	
+	// Function name to open Image
+	protected $_create_function;
 
 	public function __construct($file)
 	{
@@ -71,7 +74,7 @@ class Kohana_Image_GD extends Image {
 		}
 
 		parent::__construct($file);
-
+		
 		// Set the image creation function name
 		switch ($this->type)
 		{
@@ -91,12 +94,10 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('Installed GD does not support :type images',
 				array(':type' => image_type_to_extension($this->type, FALSE)));
 		}
-
-		// Open the temporary image
-		$this->_image = $create($this->file);
-
-		// Preserve transparency when saving
-		imagesavealpha($this->_image, TRUE);
+		
+		$this->_create_function = $create;
+		
+		$this->_image = $this->file;
 	}
 
 	public function __destruct()
@@ -107,12 +108,29 @@ class Kohana_Image_GD extends Image {
 			imagedestroy($this->_image);
 		}
 	}
+	
+	protected function _load_image()
+	{
+		if ( ! is_resource($this->_image))
+		{
+			// Gets create function 
+			$create = $this->_create_function;
+			// Open the temporary image
+			$this->_image = $create($this->file);
+	
+			// Preserve transparency when saving
+			imagesavealpha($this->_image, TRUE);
+		}
+	}
 
 	protected function _do_resize($width, $height)
 	{
 		// Presize width and height
 		$pre_width = $this->width;
 		$pre_height = $this->height;
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		// Test if we can do a resize without resampling to speed up the final resize
 		if ($width > ($this->width / 2) AND $height > ($this->height / 2))
@@ -160,6 +178,9 @@ class Kohana_Image_GD extends Image {
 		// Create the temporary image to copy to
 		$image = $this->_create($width, $height);
 
+		// Loads image if not yet loaded
+		$this->_load_image();
+		
 		// Execute the crop
 		if (imagecopyresampled($image, $this->_image, 0, 0, $offset_x, $offset_y, $width, $height, $width, $height))
 		{
@@ -180,6 +201,9 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagerotate'));
 		}
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		// Transparent black will be used as the background for the uncovered region
 		$transparent = imagecolorallocatealpha($this->_image, 0, 0, 0, 127);
@@ -210,6 +234,9 @@ class Kohana_Image_GD extends Image {
 	{
 		// Create the flipped image
 		$flipped = $this->_create($this->width, $this->height);
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		if ($direction === Image::HORIZONTAL)
 		{
@@ -244,6 +271,9 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imageconvolution'));
 		}
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		// Amount should be in the range of 18-10
 		$amount = round(abs(-18 + ($amount * 0.08)), 2);
@@ -272,6 +302,9 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagefilter'));
 		}
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		// Convert an opacity range of 0-100 to 127-0
 		$opacity = round(abs(($opacity * 127 / 100) - 127));
@@ -341,6 +374,9 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagelayereffect'));
 		}
+		
+		// Loads image if not yet loaded
+		$this->_load_image();
 
 		// Create the watermark image resource
 		$overlay = imagecreatefromstring($watermark->render());
@@ -376,6 +412,9 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_background($r, $g, $b, $opacity)
 	{
+		// Loads image if not yet loaded
+		$this->_load_image();
+		
 		// Convert an opacity range of 0-100 to 127-0
 		$opacity = round(abs(($opacity * 127 / 100) - 127));
 
@@ -402,6 +441,9 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_save($file, $quality)
 	{
+		// Loads image if not yet loaded
+		$this->_load_image();
+		
 		// Get the extension of the file
 		$extension = pathinfo($file, PATHINFO_EXTENSION);
 
@@ -423,6 +465,9 @@ class Kohana_Image_GD extends Image {
 
 	protected function _do_render($type, $quality)
 	{
+		// Loads image if not yet loaded
+		$this->_load_image();
+		
 		// Get the save function and IMAGETYPE
 		list($save, $type) = $this->_save_function($type, $quality);
 
