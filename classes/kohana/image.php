@@ -152,25 +152,24 @@ abstract class Kohana_Image {
 			// Choose the master dimension automatically
 			$master = Image::AUTO;
 		}
-		elseif ($master === Image::INVERSE)
+		// Image::WIDTH and Image::HEIGHT depricated. You can use it in old projects, 
+		// but in new you must pass empty value for non-master dimension
+		elseif ($master == Image::WIDTH AND ! empty($width))
 		{
-			if ($this->width === $this->height)
-			{
-				// Automatically choose the master dimension
-				$master = Image::AUTO;
-			}
-			elseif ($this->width > $this->height)
-			{
-				// Keep the image from becoming too short
-				$master = Image::HEIGHT;
-			}
-			else
-			{
-				// Keep the image from becoming too wide
-				$master = Image::WIDTH;
-			}
+			$master = Image::AUTO;
+			
+			// Set empty height for backvard compatibility
+			$height = NULL;
 		}
+		elseif ($master == Image::HEIGHT AND ! empty($height))
+		{
+			$master = Image::AUTO;
 
+			// Set empty width for backvard compatibility
+			$width = NULL;
+		}
+		
+				
 		if (empty($width))
 		{
 			if ($master === Image::NONE)
@@ -180,9 +179,8 @@ abstract class Kohana_Image {
 			}
 			else
 			{
-				// Recalculate the width based on the height proportions
-				// This must be done before the automatic master check
-				$width = $this->width * $height / $this->height;
+				// If width not set, master will be height
+				$master = Image::HEIGHT;
 			}
 		}
 
@@ -195,26 +193,31 @@ abstract class Kohana_Image {
 			}
 			else
 			{
-				// Recalculate the height based on the width
-				// This must be done before the automatic master check
-				$height = $this->height * $width / $this->width;
+				// If height not set, master will be width
+				$master = Image::WIDTH;
 			}
-		}
-
-		if ($master === Image::AUTO)
-		{
-			// Choose direction with the greatest reduction ratio
-			$master = ($this->width / $width) > ($this->height / $height) ? Image::WIDTH : Image::HEIGHT;
 		}
 
 		switch ($master)
 		{
+			case Image::AUTO:
+				// Choose direction with the greatest reduction ratio
+				$master = ($this->width / $width) > ($this->height / $height) ? Image::WIDTH : Image::HEIGHT;
+			break;
+			case Image::INVERSE:
+				// Choose direction with the minimum reduction ratio
+				$master = ($this->width / $width) > ($this->height / $height) ? Image::HEIGHT : Image::WIDTH;
+			break;
+		}
+		
+		switch ($master)
+		{
 			case Image::WIDTH:
-				// Proportionally set the height
+				// Recalculate the height based on the width proportions
 				$height = $this->height * $width / $this->width;
 			break;
 			case Image::HEIGHT:
-				// Proportionally set the width
+				// Recalculate the width based on the height proportions
 				$width = $this->width * $height / $this->height;
 			break;
 		}
