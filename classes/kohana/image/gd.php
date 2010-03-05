@@ -61,7 +61,7 @@ class Kohana_Image_GD extends Image {
 
 	// Temporary image resource
 	protected $_image;
-	
+
 	// Function name to open Image
 	protected $_create_function;
 
@@ -74,7 +74,7 @@ class Kohana_Image_GD extends Image {
 		}
 
 		parent::__construct($file);
-		
+
 		// Set the image creation function name
 		switch ($this->type)
 		{
@@ -94,10 +94,10 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('Installed GD does not support :type images',
 				array(':type' => image_type_to_extension($this->type, FALSE)));
 		}
-		
+
 		// Save function for future use
 		$this->_create_function = $create;
-		
+
 		// Save filename for lazy loading
 		$this->_image = $this->file;
 	}
@@ -110,17 +110,17 @@ class Kohana_Image_GD extends Image {
 			imagedestroy($this->_image);
 		}
 	}
-	
+
 	protected function _load_image()
 	{
 		if ( ! is_resource($this->_image))
 		{
-			// Gets create function 
+			// Gets create function
 			$create = $this->_create_function;
-			
+
 			// Open the temporary image
 			$this->_image = $create($this->file);
-	
+
 			// Preserve transparency when saving
 			imagesavealpha($this->_image, TRUE);
 		}
@@ -131,7 +131,7 @@ class Kohana_Image_GD extends Image {
 		// Presize width and height
 		$pre_width = $this->width;
 		$pre_height = $this->height;
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -183,7 +183,7 @@ class Kohana_Image_GD extends Image {
 
 		// Loads image if not yet loaded
 		$this->_load_image();
-		
+
 		// Execute the crop
 		if (imagecopyresampled($image, $this->_image, 0, 0, $offset_x, $offset_y, $width, $height, $width, $height))
 		{
@@ -204,7 +204,7 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagerotate'));
 		}
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -237,7 +237,7 @@ class Kohana_Image_GD extends Image {
 	{
 		// Create the flipped image
 		$flipped = $this->_create($this->width, $this->height);
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -274,7 +274,7 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imageconvolution'));
 		}
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -305,7 +305,7 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagefilter'));
 		}
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -377,7 +377,7 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagelayereffect'));
 		}
-		
+
 		// Loads image if not yet loaded
 		$this->_load_image();
 
@@ -417,7 +417,7 @@ class Kohana_Image_GD extends Image {
 	{
 		// Loads image if not yet loaded
 		$this->_load_image();
-		
+
 		// Convert an opacity range of 0-100 to 127-0
 		$opacity = round(abs(($opacity * 127 / 100) - 127));
 
@@ -446,7 +446,7 @@ class Kohana_Image_GD extends Image {
 	{
 		// Loads image if not yet loaded
 		$this->_load_image();
-		
+
 		// Get the extension of the file
 		$extension = pathinfo($file, PATHINFO_EXTENSION);
 
@@ -470,7 +470,7 @@ class Kohana_Image_GD extends Image {
 	{
 		// Loads image if not yet loaded
 		$this->_load_image();
-		
+
 		// Get the save function and IMAGETYPE
 		list($save, $type) = $this->_save_function($type, $quality);
 
