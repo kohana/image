@@ -2,7 +2,8 @@
 /**
  * Image manipulation class using {@link  http://php.net/gd GD}.
  *
- * @package    Image
+ * @package    Kohana/Image
+ * @category   Drivers
  * @author     Kohana Team
  * @copyright  (c) 2008-2009 Kohana Team
  * @license    http://kohanaphp.com/license.html
