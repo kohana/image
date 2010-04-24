@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * Image manipulation class using {@link  http://php.net/gd GD}.
+ * Support for image manipulation using [GD](http://php.net/GD).
  *
  * @package    Kohana/Image
  * @category   Drivers
@@ -13,6 +13,13 @@ class Kohana_Image_GD extends Image {
 	// Is GD bundled or separate?
 	protected static $_bundled;
 
+	/**
+	 * Checks if GD is enabled and bundled. Bundled GD is required for some
+	 * methods to work. Exceptions will be thrown from those methods when GD is
+	 * not bundled.
+	 *
+	 * @return  boolean
+	 */
 	public static function check()
 	{
 		if ( ! function_exists('gd_info'))
@@ -66,6 +73,12 @@ class Kohana_Image_GD extends Image {
 	// Function name to open Image
 	protected $_create_function;
 
+	/**
+	 * Runs [Image_GD::check] and loads the image.
+	 *
+	 * @return  void
+	 * @throws  Kohana_Exception
+	 */
 	public function __construct($file)
 	{
 		if ( ! Image_GD::$_checked)
@@ -103,6 +116,11 @@ class Kohana_Image_GD extends Image {
 		$this->_image = $this->file;
 	}
 
+	/**
+	 * Destroys the loaded image to free up resources.
+	 *
+	 * @return  void
+	 */
 	public function __destruct()
 	{
 		if (is_resource($this->_image))
@@ -112,6 +130,11 @@ class Kohana_Image_GD extends Image {
 		}
 	}
 
+	/**
+	 * Loads an image into GD.
+	 *
+	 * @return  void
+	 */
 	protected function _load_image()
 	{
 		if ( ! is_resource($this->_image))
@@ -495,10 +518,10 @@ class Kohana_Image_GD extends Image {
 	 * Get the GD saving function and image type for this extension.
 	 * Also normalizes the quality setting
 	 *
-	 * @throws  Kohana_Exception
 	 * @param   string   image type: png, jpg, etc
 	 * @param   integer  image quality
 	 * @return  array    save function, IMAGETYPE_* constant
+	 * @throws  Kohana_Exception
 	 */
 	protected function _save_function($extension, & $quality)
 	{
