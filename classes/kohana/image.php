@@ -244,9 +244,9 @@ abstract class Kohana_Image {
 			break;
 		}
 
-		// Convert the width and height to integers
-		$width  = round($width);
-		$height = round($height);
+		// Convert the width and height to integers, minimum value is 1px
+		$width  = max(round($width), 1);
+		$height = max(round($height), 1);
 
 		$this->_do_resize($width, $height);
 
