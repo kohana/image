@@ -135,7 +135,7 @@ abstract class Kohana_Image {
 				$error = Kohana::exception_text($e);
 
 				// Add this exception to the log
-				Kohana::$log->add(Kohana::ERROR, $error);
+				Kohana::$log->add(Log::ERROR, $error);
 			}
 
 			// Showing any kind of error will be "inside" image data
