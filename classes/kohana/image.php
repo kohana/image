@@ -74,6 +74,11 @@ abstract class Kohana_Image {
 	public $type;
 
 	/**
+	 * @var  string  mime type of the image
+	 */
+	public $mime;
+
+	/**
 	 * Loads information about the image. Will throw an exception if the image
 	 * does not exist or is not an image.
 	 *
