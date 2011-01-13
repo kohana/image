@@ -16,6 +16,7 @@ abstract class Kohana_Image {
 	const HEIGHT  = 0x03;
 	const AUTO    = 0x04;
 	const INVERSE = 0x05;
+	const PRECISE = 0x06;
 
 	// Flipping directions
 	const HORIZONTAL = 0x11;
@@ -246,6 +247,16 @@ abstract class Kohana_Image {
 			case Image::HEIGHT:
 				// Recalculate the width based on the height proportions
 				$width = $this->width * $height / $this->height;
+			break;
+			case Image::PRECISE:
+				// Resize to precise size
+				$ratio = $this->width/$this->height;
+
+				if ($width/$height > $ratio) {
+					$height = $this->height * $width / $this->width;
+				} else {
+					$width = $this->width * $height / $this->height;
+				}
 			break;
 		}
 
