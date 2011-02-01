@@ -8,7 +8,7 @@
  * @copyright  (c) 2009-2010 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Kohana_Image_ImageMagick extends Image {
+class Kohana_Image_Imagick extends Image {
 
 	/**
 	 * @var  Imagick
@@ -23,33 +23,30 @@ class Kohana_Image_ImageMagick extends Image {
 	 */
 	public static function check()
 	{
-		if (!extension_loaded('imagick')) 
+		if ( ! extension_loaded('imagick'))
 		{
-			throw new Kohana_Exception('ImageMagick is not installed, check your configuration');
+			throw new Kohana_Exception('Imagick is not installed, or the extension is not loaded');
 		}
 
-		return Image_ImageMagick::$_checked = TRUE;
+		return Image_Imagick::$_checked = TRUE;
 	}
 
 	/**
-	 * Runs [Image_ImageMagick::check] and loads the image.
+	 * Runs [Image_Imagick::check] and loads the image.
 	 *
 	 * @return  void
 	 * @throws  Kohana_Exception
 	 */
 	public function __construct($file)
 	{
-		if ( ! Image_ImageMagick::$_checked)
+		if ( ! Image_Imagick::$_checked)
 		{
 			// Run the install check
-			Image_ImageMagick::check();
+			Image_Imagick::check();
 		}
 
-		// Some ImageMagick methods won't work without this
-		setlocale(LC_ALL, 'en_US.utf-8');
-
 		parent::__construct($file);
-		
+
 		$this->im = new Imagick;
 		$this->im->readImage($file);
 	}
@@ -67,15 +64,15 @@ class Kohana_Image_ImageMagick extends Image {
 
 	protected function _do_resize($width, $height)
 	{
-		if ($this->im->resizeImage($width, $height, Imagick::FILTER_CUBIC, 0.5)) 
+		if ($this->im->resizeImage($width, $height, Imagick::FILTER_CUBIC, 0.5))
 		{
 			// Reset the width and height
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
-			
+
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
@@ -86,14 +83,14 @@ class Kohana_Image_ImageMagick extends Image {
 			// Reset the width and height
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
-			
+
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
-	protected function _do_rotate($degrees) 
+	protected function _do_rotate($degrees)
 	{
 		if ($this->im->rotateImage(new ImagickPixel, $degrees))
 		{
@@ -103,7 +100,7 @@ class Kohana_Image_ImageMagick extends Image {
 
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
@@ -112,44 +109,44 @@ class Kohana_Image_ImageMagick extends Image {
 		if ($direction === Image::HORIZONTAL)
 		{
 			$this->im->flopImage();
-		} 
+		}
 		else
 		{
 			$this->im->flipImage();
 		}
-		
-		
+
+
 		// Reset the width and height
 		$this->width = $this->im->getImageWidth();
 		$this->height = $this->im->getImageHeight();
 	}
 
-	protected function _do_sharpen($amount) 
+	protected function _do_sharpen($amount)
 	{
 		//IM not support $amount under 5 (0.15)
 		$amount = ($amount < 5) ? 5 : $amount;
-		
+
 		// Amount should be in the range of 0.0 to 3.0
 		$amount = ($amount * 3.0) / 100;
-		
+
 		if ($this->im->sharpenImage(0, $amount))
 		{
 			// Reset the width and height
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
-			
+
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
-	
+
 	protected function _do_reflection($height, $opacity, $fade_in)
 	{
 		// TODO
 	}
 
-	protected function _do_watermark(Image $image, $offset_x, $offset_y, $opacity) 
+	protected function _do_watermark(Image $image, $offset_x, $offset_y, $opacity)
 	{
 		$this->im->compositeImage($image->im, Imagick::COMPOSITE_DISSOLVE, $offset_x, $offset_y);
 	}
@@ -165,21 +162,21 @@ class Kohana_Image_ImageMagick extends Image {
 	{
 		// Get the extension of the file
 		$extension = pathinfo($file, PATHINFO_EXTENSION);
-		
+
 		// Get the save function and IMAGETYPE
 		$type = $this->_save_function($extension, $quality);
-		
+
 		$this->im->setImageCompressionQuality($quality);
 
-		if ($this->im->writeImage($file)) 
+		if ($this->im->writeImage($file))
 		{
 			// Reset the image type and mime type
 			$this->type = $type;
 			$this->mime = image_type_to_mime_type($type);
-			
+
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
@@ -187,16 +184,16 @@ class Kohana_Image_ImageMagick extends Image {
 	{
 		// Get the save function and IMAGETYPE
 		$type = $this->_save_function($type, $quality);
-		
+
 		$this->im->setImageCompressionQuality($quality);
-		
+
 		// Reset the image type and mime type
 		$this->type = $type;
 		$this->mime = image_type_to_mime_type($type);
 
 		return $this->im->__toString();
 	}
-	
+
 	/**
 	 * Get the image type for this extension.
 	 * Also normalizes the quality setting
@@ -228,9 +225,9 @@ class Kohana_Image_ImageMagick extends Image {
 					array(':type' => $extension));
 			break;
 		}
-		
+
 		$quality = $quality - 5;
 
 		return $type;
 	}
-} // End Kohana_Image_ImageMagick
+} // End Kohana_Image_Imagick
