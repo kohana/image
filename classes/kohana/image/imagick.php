@@ -11,7 +11,7 @@
 class Kohana_Image_Imagick extends Image {
 
 	/**
-	 * @var  Imagick
+	 * @var  Imagick  image magick object
 	 */
 	protected $im;
 
@@ -108,17 +108,12 @@ class Kohana_Image_Imagick extends Image {
 	{
 		if ($direction === Image::HORIZONTAL)
 		{
-			$this->im->flopImage();
+			return $this->im->flopImage();
 		}
 		else
 		{
-			$this->im->flipImage();
+			return $this->im->flipImage();
 		}
-
-
-		// Reset the width and height
-		$this->width = $this->im->getImageWidth();
-		$this->height = $this->im->getImageHeight();
 	}
 
 	protected function _do_sharpen($amount)
@@ -129,8 +124,54 @@ class Kohana_Image_Imagick extends Image {
 		// Amount should be in the range of 0.0 to 3.0
 		$amount = ($amount * 3.0) / 100;
 
-		if ($this->im->sharpenImage(0, $amount))
+		return $this->im->sharpenImage(0, $amount);
+	}
+
+	protected function _do_reflection($height, $opacity, $fade_in)
+	{
+		// Clone the current image and flip it for reflection
+		$reflection = $this->im->clone();
+		$reflection->flipImage();
+
+		// Crop the reflection to the selected height
+		$reflection->cropImage($this->width, $height, 0, 0);
+
+		if ($reflection->getImageAlphaChannel() !== Imagick::ALPHACHANNEL_ACTIVATE)
 		{
+			// Force the reflection to have an alpha channel
+			$reflection->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+		}
+
+		// Select the fade direction
+		$direction = array('transparent', 'black');
+
+		if ($fade_in)
+		{
+			// Change the direction of the fade
+			$direction = array_reverse($direction);
+		}
+
+		// Create a gradient for fading
+		$fade = new Imagick;
+		$fade->newPseudoImage($reflection->getImageWidth(), $reflection->getImageHeight(), vsprintf('gradient:%s-%s', $direction));
+
+		// Apply the fade alpha channel to the reflection
+		$reflection->compositeImage($fade, Imagick::COMPOSITE_DSTOUT, 0, 0);
+
+		// NOTE: Using setImageOpacity will destroy alpha channels!
+		$reflection->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity / 100, Imagick::CHANNEL_ALPHA);
+
+		// Create a new container to hold the image and reflection
+		$image = new Imagick;
+		$image->newImage($this->width, $this->height + $height, new ImagickPixel('transparent'));
+
+		// Place the image and reflection into the container
+		if ($image->compositeImage($this->im, Imagick::COMPOSITE_OVER, 0, 0)
+		AND $image->compositeImage($reflection, Imagick::COMPOSITE_OVER, 0, $this->height))
+		{
+			// Replace the current image with the reflected image
+			$this->im = $image;
+
 			// Reset the width and height
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
@@ -141,31 +182,58 @@ class Kohana_Image_Imagick extends Image {
 		return FALSE;
 	}
 
-	protected function _do_reflection($height, $opacity, $fade_in)
-	{
-		// TODO
-	}
-
 	protected function _do_watermark(Image $image, $offset_x, $offset_y, $opacity)
 	{
-		$this->im->compositeImage($image->im, Imagick::COMPOSITE_DISSOLVE, $offset_x, $offset_y);
+		// Convert the Image intance into an Imagick instance
+		$watermark = new Imagick;
+		$watermark->readImageBlob($image->render(), $image->file);
+
+		if ($watermark->getImageAlphaChannel() !== Imagick::ALPHACHANNEL_ACTIVATE)
+		{
+			// Force the image to have an alpha channel
+			$watermark->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+		}
+
+		// NOTE: Using setImageOpacity will destroy current alpha channels!
+		$watermark->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity / 100, Imagick::CHANNEL_ALPHA);
+
+		// Match the colorspace between the two images before compositing
+		$watermark->setColorspace($this->im->getColorspace());
+
+		return $this->im->compositeImage($watermark, Imagick::COMPOSITE_DISSOLVE, $offset_x, $offset_y);
 	}
 
 	protected function _do_background($r, $g, $b, $opacity)
 	{
-		$opacity = $opacity / 100;
+		// Create a new image for the background
+		$background = new Imagick;
+		$background->newPseudoImage($this->width, $this->height, sprintf('canvas:rgb(%d,%d,%d)', $r, $g, $b));
 
-		// TODO
+		$background->setImageOpacity($opacity / 100);
+
+		// Match the colorspace between the two images before compositing
+		$background->setColorspace($this->im->getColorspace());
+
+		if ($background->compositeImage($this->im, Imagick::COMPOSITE_DISSOLVE, 0, 0))
+		{
+			// Replace the current image with the new image
+			$this->im = $background;
+
+			return TRUE;
+		}
+
+		return FALSE;
 	}
 
 	protected function _do_save($file, $quality)
 	{
-		// Get the extension of the file
-		$extension = pathinfo($file, PATHINFO_EXTENSION);
+		// Get the image format and type
+		list($format, $type) = $this->_get_imagetype(pathinfo($file, PATHINFO_EXTENSION));
 
-		// Get the save function and IMAGETYPE
-		$type = $this->_save_function($extension, $quality);
+		// Set the output image type
+		$this->im->setFormat($format);
 
+		// Set the output quality
 		$this->im->setImageCompressionQuality($quality);
 
 		if ($this->im->writeImage($file))
@@ -182,43 +250,45 @@ class Kohana_Image_Imagick extends Image {
 
 	protected function _do_render($type, $quality)
 	{
-		// Get the save function and IMAGETYPE
-		$type = $this->_save_function($type, $quality);
+		// Get the image format and type
+		list($format, $type) = $this->_get_imagetype($type);
 
+		// Set the output image type
+		$this->im->setFormat($format);
+
+		// Set the output quality
 		$this->im->setImageCompressionQuality($quality);
 
 		// Reset the image type and mime type
 		$this->type = $type;
 		$this->mime = image_type_to_mime_type($type);
 
-		return $this->im->__toString();
+		return (string) $this->im;
 	}
 
 	/**
-	 * Get the image type for this extension.
-	 * Also normalizes the quality setting
+	 * Get the image type and format for an extension.
 	 *
-	 * @param   string   image type: png, jpg, etc
-	 * @param   integer  image quality
+	 * @param   string   image extension: png, jpg, etc
 	 * @return  string   IMAGETYPE_* constant
 	 * @throws  Kohana_Exception
 	 */
-	protected function _save_function($extension, & $quality)
+	protected function _get_imagetype($extension)
 	{
-		switch (strtolower($extension))
+		// Normalize the extension to a format
+		$format = strtolower($extension);
+
+		switch ($format)
 		{
 			case 'jpg':
 			case 'jpeg':
 				$type = IMAGETYPE_JPEG;
-				$this->im->setImageFormat('jpeg');
 			break;
 			case 'gif':
 				$type = IMAGETYPE_GIF;
-				$this->im->setImageFormat('gif');
 			break;
 			case 'png':
 				$type = IMAGETYPE_PNG;
-				$this->im->setImageFormat('png');
 			break;
 			default:
 				throw new Kohana_Exception('Installed ImageMagick does not support :type images',
@@ -226,8 +296,6 @@ class Kohana_Image_Imagick extends Image {
 			break;
 		}
 
-		$quality = $quality - 5;
-
-		return $type;
+		return array($format, $type);
 	}
 } // End Kohana_Image_Imagick
