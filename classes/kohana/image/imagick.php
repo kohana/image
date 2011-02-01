@@ -49,6 +49,12 @@ class Kohana_Image_Imagick extends Image {
 
 		$this->im = new Imagick;
 		$this->im->readImage($file);
+
+		if ( ! $this->im->getImageAlphaChannel())
+		{
+			// Force the image to have an alpha channel
+			$this->im->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
+		}
 	}
 
 	/**
@@ -84,6 +90,9 @@ class Kohana_Image_Imagick extends Image {
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
 
+			// Trim off hidden areas
+			$this->im->setImagePage($this->width, $this->height, 0, 0);
+
 			return TRUE;
 		}
 
@@ -92,11 +101,14 @@ class Kohana_Image_Imagick extends Image {
 
 	protected function _do_rotate($degrees)
 	{
-		if ($this->im->rotateImage(new ImagickPixel, $degrees))
+		if ($this->im->rotateImage(new ImagickPixel('transparent'), $degrees))
 		{
 			// Reset the width and height
 			$this->width = $this->im->getImageWidth();
 			$this->height = $this->im->getImageHeight();
+
+			// Trim off hidden areas
+			$this->im->setImagePage($this->width, $this->height, 0, 0);
 
 			return TRUE;
 		}
@@ -135,12 +147,7 @@ class Kohana_Image_Imagick extends Image {
 
 		// Crop the reflection to the selected height
 		$reflection->cropImage($this->width, $height, 0, 0);
-
-		if ($reflection->getImageAlphaChannel() !== Imagick::ALPHACHANNEL_ACTIVATE)
-		{
-			// Force the reflection to have an alpha channel
-			$reflection->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
-		}
+		$reflection->setImagePage($this->width, $height, 0, 0);
 
 		// Select the fade direction
 		$direction = array('transparent', 'black');
@@ -163,10 +170,19 @@ class Kohana_Image_Imagick extends Image {
 
 		// Create a new container to hold the image and reflection
 		$image = new Imagick;
-		$image->newImage($this->width, $this->height + $height, new ImagickPixel('transparent'));
+		$image->newImage($this->width, $this->height + $height, new ImagickPixel);
+
+		// Force the image to have an alpha channel
+		$image->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
+
+		// Force the background color to be transparent
+		// $image->setImageBackgroundColor(new ImagickPixel('transparent'));
+
+		// Match the colorspace between the two images before compositing
+		$image->setColorspace($this->im->getColorspace());
 
 		// Place the image and reflection into the container
-		if ($image->compositeImage($this->im, Imagick::COMPOSITE_OVER, 0, 0)
+		if ($image->compositeImage($this->im, Imagick::COMPOSITE_SRC, 0, 0)
 		AND $image->compositeImage($reflection, Imagick::COMPOSITE_OVER, 0, $this->height))
 		{
 			// Replace the current image with the reflected image
@@ -188,10 +204,10 @@ class Kohana_Image_Imagick extends Image {
 		$watermark = new Imagick;
 		$watermark->readImageBlob($image->render(), $image->file);
 
-		if ($watermark->getImageAlphaChannel() !== Imagick::ALPHACHANNEL_ACTIVATE)
+		if ( ! $watermark->getImageAlphaChannel())
 		{
 			// Force the image to have an alpha channel
-			$watermark->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+			$watermark->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
 		}
 
 		// NOTE: Using setImageOpacity will destroy current alpha channels!
@@ -200,16 +216,30 @@ class Kohana_Image_Imagick extends Image {
 		// Match the colorspace between the two images before compositing
 		$watermark->setColorspace($this->im->getColorspace());
 
+		// Apply the watermark to the image
 		return $this->im->compositeImage($watermark, Imagick::COMPOSITE_DISSOLVE, $offset_x, $offset_y);
 	}
 
 	protected function _do_background($r, $g, $b, $opacity)
 	{
+		// Create a RGB color for the background
+		$color = sprintf('rgb(%d, %d, %d)', $r, $g, $b);
+
 		// Create a new image for the background
 		$background = new Imagick;
-		$background->newPseudoImage($this->width, $this->height, sprintf('canvas:rgb(%d,%d,%d)', $r, $g, $b));
+		$background->newImage($this->width, $this->height, new ImagickPixel($color));
 
-		$background->setImageOpacity($opacity / 100);
+		if ( ! $background->getImageAlphaChannel())
+		{
+			// Force the image to have an alpha channel
+			$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
+		}
+
+		// Clear the background image
+		$background->setImageBackgroundColor(new ImagickPixel('transparent'));
+
+		// NOTE: Using setImageOpacity will destroy current alpha channels!
+		$background->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity / 100, Imagick::CHANNEL_ALPHA);
 
 		// Match the colorspace between the two images before compositing
 		$background->setColorspace($this->im->getColorspace());
@@ -252,6 +282,9 @@ class Kohana_Image_Imagick extends Image {
 	{
 		// Get the image format and type
 		list($format, $type) = $this->_get_imagetype($type);
+
+		// Flatten the current image
+		$this->im = $this->im->flattenImages();
 
 		// Set the output image type
 		$this->im->setFormat($format);
