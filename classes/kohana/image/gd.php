@@ -408,6 +408,8 @@ class Kohana_Image_GD extends Image {
 		// Create the watermark image resource
 		$overlay = imagecreatefromstring($watermark->render());
 
+		imagesavealpha($overlay, TRUE);
+
 		// Get the width and height of the watermark
 		$width  = imagesx($overlay);
 		$height = imagesy($overlay);
@@ -417,13 +419,13 @@ class Kohana_Image_GD extends Image {
 			// Convert an opacity range of 0-100 to 127-0
 			$opacity = round(abs(($opacity * 127 / 100) - 127));
 
-			// Allocate transparent white
-			$color = imagecolorallocatealpha($overlay, 255, 255, 255, $opacity);
+			// Allocate transparent gray
+			$color = imagecolorallocatealpha($overlay, 127, 127, 127, $opacity);
 
 			// The transparent image will overlay the watermark
 			imagelayereffect($overlay, IMG_EFFECT_OVERLAY);
 
-			// Fill the background with transparent white
+			// Fill the background with the transparent color
 			imagefilledrectangle($overlay, 0, 0, $width, $height, $color);
 		}
 
