@@ -204,17 +204,20 @@ class Kohana_Image_Imagick extends Image {
 		$watermark = new Imagick;
 		$watermark->readImageBlob($image->render(), $image->file);
 
-		if ( ! $watermark->getImageAlphaChannel())
+		if ($watermark->getImageAlphaChannel() !== Imagick::ALPHACHANNEL_ACTIVATE)
 		{
 			// Force the image to have an alpha channel
-			$watermark->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
+			$watermark->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
 		}
 
-		// NOTE: Using setImageOpacity will destroy current alpha channels!
-		$watermark->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity / 100, Imagick::CHANNEL_ALPHA);
+		if ($opacity < 100)
+		{
+			// NOTE: Using setImageOpacity will destroy current alpha channels!
+			$watermark->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity / 100, Imagick::CHANNEL_ALPHA);
+		}
 
 		// Match the colorspace between the two images before compositing
-		$watermark->setColorspace($this->im->getColorspace());
+		// $watermark->setColorspace($this->im->getColorspace());
 
 		// Apply the watermark to the image
 		return $this->im->compositeImage($watermark, Imagick::COMPOSITE_DISSOLVE, $offset_x, $offset_y);
@@ -282,9 +285,6 @@ class Kohana_Image_Imagick extends Image {
 	{
 		// Get the image format and type
 		list($format, $type) = $this->_get_imagetype($type);
-
-		// Flatten the current image
-		$this->im = $this->im->flattenImages();
 
 		// Set the output image type
 		$this->im->setFormat($format);
