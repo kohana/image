@@ -10,7 +10,7 @@
  */
 abstract class Kohana_Image {
 
-	// Resizing contraints
+	// Resizing constraints
 	const NONE    = 0x01;
 	const WIDTH   = 0x02;
 	const HEIGHT  = 0x03;
@@ -137,7 +137,7 @@ abstract class Kohana_Image {
 			if (is_object(Kohana::$log))
 			{
 				// Get the text of the exception
-				$error = Kohana::exception_text($e);
+				$error = Kohana_Exception::text($e);
 
 				// Add this exception to the log
 				Kohana::$log->add(Log::ERROR, $error);
@@ -180,20 +180,20 @@ abstract class Kohana_Image {
 			// Choose the master dimension automatically
 			$master = Image::AUTO;
 		}
-		// Image::WIDTH and Image::HEIGHT depricated. You can use it in old projects,
+		// Image::WIDTH and Image::HEIGHT deprecated. You can use it in old projects,
 		// but in new you must pass empty value for non-master dimension
 		elseif ($master == Image::WIDTH AND ! empty($width))
 		{
 			$master = Image::AUTO;
 
-			// Set empty height for backvard compatibility
+			// Set empty height for backward compatibility
 			$height = NULL;
 		}
 		elseif ($master == Image::HEIGHT AND ! empty($height))
 		{
 			$master = Image::AUTO;
 
-			// Set empty width for backvard compatibility
+			// Set empty width for backward compatibility
 			$width = NULL;
 		}
 
