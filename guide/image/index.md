@@ -1,6 +1,6 @@
 # Image
 
-Kohana 3.x provides a simple yet powerful image manipulation module. The [Image] module provides features that allows your application to resize, images, crop, rotate, flip and many more.
+Kohana 3.x provides a simple yet powerful image manipulation module. The [Image] module provides features that allows your application to resize images, crop, rotate, flip and many more.
 
 ## Drivers
 
