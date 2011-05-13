@@ -4,7 +4,7 @@ This example is very similar to our previous example and even uses the same uplo
 
 ## Controller
 
-We name our new controller as `Controller_Crop` and accessible through `/crop` URL. Assuming that your project is located in [http://localhost/kohana](http://localhost/kohana), then our crop controller is at [http://localhost/kohana/crop](http://localhost/kohana/crop).
+We name our new controller as `Controller_Crop` and accessible through `/crop` URL. Assuming that your project is located at [http://localhost/kohana](http://localhost/kohana), then our crop controller is at [http://localhost/kohana/crop](http://localhost/kohana/crop).
 
 ~~~
 <?php defined('SYSPATH') or die('No direct script access.');

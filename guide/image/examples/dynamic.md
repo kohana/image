@@ -6,7 +6,7 @@ In this example, we have images under `/uploads` under the webroot directory. We
 
 First, we need a [Route]. This [Route] is based on this URL pattern:
 
-`/imagefly/filename/width/height` - where filename is the name of the image without the extension.
+`/imagefly/filename/width/height` - where filename is the name of the image without the extension. This assumes that all images are in `jpg` and all filenames uses numbers, letters, dash and underscores only.
 
 This is our [Route] definition:
 

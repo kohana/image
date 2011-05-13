@@ -54,7 +54,7 @@ $img = Image::factory(DOCROOT.'uploads/colorado-farm-1920x1200.jpg');
 header('Content-Type: image/jpeg');
 
 echo $img->resize(300, 300)
-	->render('jpg');
+	->render();
 ~~~
 
 What it did is resize a 1920x1200 wallpaper image into 300x300 proportionally and render it to the browser. If you are trying to render the image in a controller action, you can do instead:
@@ -68,6 +68,16 @@ $this->response->body(
 	$img->resize(300, 300)
 		->render()
 );
+~~~
+
+[Image::render()] method also allows you to specify the type and quality of the rendered image.
+
+~~~
+// Render the image at 50% quality
+$img->render(NULL, 50);
+ 
+// Render the image as a PNG
+$img->render('png');
 ~~~
 
 ## Save To File
