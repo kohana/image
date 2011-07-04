@@ -101,6 +101,9 @@ class Kohana_Image_GD extends Image {
 			case IMAGETYPE_PNG:
 				$create = 'imagecreatefrompng';
 			break;
+			case IMAGETYPE_BMP:
+				$create = 'imagecreatefrombmp';
+			break;
 		}
 
 		if ( ! isset($create) OR ! function_exists($create))
