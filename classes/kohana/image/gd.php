@@ -527,6 +527,15 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _save_function($extension, & $quality)
 	{
+		if ( empty($extension) )
+		{
+			// Use the current image type
+			$extension = image_type_to_extension($this->type, FALSE);
+		}
+
+		if ( ! $extension)
+			throw new Kohana_Exception('No image type specified.');
+
 		switch (strtolower($extension))
 		{
 			case 'jpg':
