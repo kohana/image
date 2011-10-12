@@ -12,6 +12,14 @@
 
 class Kohana_ImageTest extends PHPUnit_Framework_TestCase {
 
+	protected function setUp()
+	{
+		if ( ! extension_loaded('gd'))
+		{
+			$this->markTestSkipped('The GD extension is not available.');
+		}
+	}
+
 	/**
 	 * Tests the Image::save() method for files that don't have extensions
 	 *
