@@ -250,11 +250,14 @@ abstract class Kohana_Image {
 			break;
 			case Image::PRECISE:
 				// Resize to precise size
-				$ratio = $this->width/$this->height;
+				$ratio = $this->width / $this->height;
 
-				if ($width/$height > $ratio) {
+				if ($width / $height > $ratio)
+				{
 					$height = $this->height * $width / $this->width;
-				} else {
+				}
+				else
+				{
 					$width = $this->width * $height / $this->height;
 				}
 			break;
