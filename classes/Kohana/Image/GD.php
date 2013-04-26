@@ -31,10 +31,10 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('GD is either not installed or not enabled, check your configuration');
 		}
 		$functions = array(
-			self::IMAGEROTATE,
-			self::IMAGECONVOLUTION,
-			self::IMAGEFILTER,
-			self::IMAGELAYEREFFECT
+			Image_GD::IMAGEROTATE,
+			Image_GD::IMAGECONVOLUTION,
+			Image_GD::IMAGEFILTER,
+			Image_GD::IMAGELAYEREFFECT
 		);
 		foreach ($functions as $function)
 		{
@@ -246,7 +246,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_rotate($degrees)
 	{
-		if ( Image_GD::$_available_functions[self::IMAGEROTATE] )
+		if (empty(Image_GD::$_available_functions[Image_GD::IMAGEROTATE]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagerotate'));
@@ -328,7 +328,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_sharpen($amount)
 	{
-		if ( Image_GD::$_available_functions[self::IMAGECONVOLUTION] )
+		if (empty(Image_GD::$_available_functions[Image_GD::IMAGECONVOLUTION]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imageconvolution'));
@@ -367,7 +367,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_reflection($height, $opacity, $fade_in)
 	{
-		if ( Image_GD::$_available_functions[self::IMAGEFILTER] )
+		if (empty(Image_GD::$_available_functions[Image_GD::IMAGEFILTER]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagefilter'));
@@ -448,7 +448,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
 	{
-		if ( Image_GD::$_available_functions[self::IMAGELAYEREFFECT] )
+		if (empty(Image_GD::$_available_functions[Image_GD::IMAGELAYEREFFECT]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagelayereffect'));
