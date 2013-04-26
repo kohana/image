@@ -31,10 +31,10 @@ class Kohana_Image_GD extends Image {
 			throw new Kohana_Exception('GD is either not installed or not enabled, check your configuration');
 		}
 		$functions = array(
-			Image_GD::IMAGEROTATE,
-			Image_GD::IMAGECONVOLUTION,
-			Image_GD::IMAGEFILTER,
-			Image_GD::IMAGELAYEREFFECT
+			static::IMAGEROTATE,
+			static::IMAGECONVOLUTION,
+			static::IMAGEFILTER,
+			static::IMAGELAYEREFFECT
 		);
 		foreach ($functions as $function)
 		{
@@ -246,7 +246,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_rotate($degrees)
 	{
-		if (empty(Image_GD::$_available_functions[Image_GD::IMAGEROTATE]))
+		if (empty(Image_GD::$_available_functions[static::IMAGEROTATE]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagerotate'));
@@ -328,7 +328,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_sharpen($amount)
 	{
-		if (empty(Image_GD::$_available_functions[Image_GD::IMAGECONVOLUTION]))
+		if (empty(Image_GD::$_available_functions[static::IMAGECONVOLUTION]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imageconvolution'));
@@ -367,7 +367,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_reflection($height, $opacity, $fade_in)
 	{
-		if (empty(Image_GD::$_available_functions[Image_GD::IMAGEFILTER]))
+		if (empty(Image_GD::$_available_functions[static::IMAGEFILTER]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagefilter'));
@@ -448,7 +448,7 @@ class Kohana_Image_GD extends Image {
 	 */
 	protected function _do_watermark(Image $watermark, $offset_x, $offset_y, $opacity)
 	{
-		if (empty(Image_GD::$_available_functions[Image_GD::IMAGELAYEREFFECT]))
+		if (empty(Image_GD::$_available_functions[static::IMAGELAYEREFFECT]))
 		{
 			throw new Kohana_Exception('This method requires :function, which is only available in the bundled version of GD',
 				array(':function' => 'imagelayereffect'));
