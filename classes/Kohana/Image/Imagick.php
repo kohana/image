@@ -331,4 +331,75 @@ class Kohana_Image_Imagick extends Image {
 
 		return array($format, $type);
 	}
+
+	protected function _colorspace_rgb()
+	{
+		if ($this->im->getColorspace() == Imagick::COLORSPACE_CMYK OR $this->im->getImageColorspace() == Imagick::COLORSPACE_CMYK)
+		{
+			$this->im->negateImage(FALSE);
+			$this->im->setColorspace(Imagick::COLORSPACE_SRGB);
+			$this->im->setImageColorspace(Imagick::COLORSPACE_SRGB);
+		}
+
+		$this->im->profileImage('*', NULL);
+		$this->im->stripImage();
+
+		return $this->im;
+	}
+
+	protected function _do_resolution($dpi)
+	{
+		$resolution = $this->im->getImageResolution();
+
+		if (is_array($dpi))
+		{
+			// Change DPI for each X/Y, let's only accept int
+			if (isset($dpi['x']) AND is_int($dpi['x']) AND isset($dpi['y']) AND is_int($dpi['y']))
+			{
+				// Only change DPI if we need to
+				if ($resolution['x'] == $dpi['x'] AND $resolution['y'] == $dpi['y'])
+				{
+					return $this->im;
+				}
+				else
+				{
+					$this->im->setImageResolution ($dpi['x'], $dpi['y']);
+					$this->im->resampleImage($dpi['x'], $dpi['y'], Imagick::FILTER_UNDEFINED, 0);
+					return $this->im;
+				}
+			}
+			else
+			{
+				// Wrong arguments
+				return $this->im;
+			}
+		}
+		else
+		{
+			if (!is_int($dpi))
+			{
+				return $this->im;
+			}
+
+			// Change DPI equally, but only if we need to
+			if ($resolution['x'] == $dpi AND $resolution['y'] == $dpi)
+			{
+				return $this->im;
+			}
+			else
+			{
+				$this->im->setImageResolution ($dpi, $dpi);
+				$this->im->resampleImage($dpi, $dpi, Imagick::FILTER_UNDEFINED, 0);
+				return $this->im;
+			}
+		}
+	}
+
+	protected function _do_strip()
+	{
+		$this->im->profileImage('*', NULL);
+		$this->im->stripImage();
+		return $this->im;
+	}
+
 } // End Kohana_Image_Imagick
