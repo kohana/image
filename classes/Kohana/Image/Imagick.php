@@ -331,4 +331,10 @@ class Kohana_Image_Imagick extends Image {
 
 		return array($format, $type);
 	}
+
+	public function __clone()
+	{
+		// Force a copy of this->im, otherwise it will point to same object.
+		$this->im = clone $this->im;
+	}
 } // End Kohana_Image_Imagick
