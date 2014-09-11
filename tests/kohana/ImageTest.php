@@ -27,7 +27,7 @@ class Kohana_ImageTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_save_without_extension()
 	{
-		$image = Image::factory(MODPATH.'image/tests/test_data/test_image');
+		$image = Image::factory(__DIR__.'/../test_data/test_image');
 		$this->assertTrue($image->save(Kohana::$cache_dir.'/test_image'));
 
 		unlink(Kohana::$cache_dir.'/test_image');
