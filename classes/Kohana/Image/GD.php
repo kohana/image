@@ -662,4 +662,19 @@ class Kohana_Image_GD extends Image {
 		return $image;
 	}
 
+	protected function _colorspace_rgb()
+	{
+		return TRUE;
+	}
+
+	protected function _do_resolution($dpi)
+	{
+		return TRUE;
+	}
+
+	protected function _do_strip()
+	{
+		return TRUE;
+	}
+
 } // End Image_GD

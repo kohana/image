@@ -585,6 +585,46 @@ abstract class Kohana_Image {
 	}
 
 	/**
+	 * Set image colorspace to RGB
+	 *
+	 * @return   $this
+	 * @uses     Image::_colorspace_rgb
+	 */
+	public function colorspace_rgb()
+	{
+		$this->_colorspace_rgb();
+
+		return $this;
+	}
+
+	/**
+	 * Set image resolution and resample it
+	 *
+	 * @param   int   $dpi  Image resolution (DPI)
+	 * @return  $this
+	 * @uses    Image::_do_resolution
+	 */
+	public function resolution($dpi = 72)
+	{
+		$this->_do_resolution($dpi);
+
+		return $this;
+	}
+
+	/**
+	 * Strip image of all profiles and comments
+	 *
+	 * @return  $this
+	 * @uses    Image::_do_strip
+	 */
+	public function strip()
+	{
+		$this->_do_strip();
+
+		return $this;
+	}
+
+	/**
 	 * Save the image. If the filename is omitted, the original image will
 	 * be overwritten.
 	 *
@@ -757,5 +797,27 @@ abstract class Kohana_Image {
 	 * @return  string
 	 */
 	abstract protected function _do_render($type, $quality);
+
+	/**
+	 * Converts image from CMYK to RGB (if necessary)
+	 *
+	 * @return  $this
+	 * @uses    Image::_do_colorspace_to_rgb
+	 */
+	abstract protected function _colorspace_rgb();
+
+	/**
+	 * Resample image to desired resolution
+	 *
+	 * @return  $this
+	 */
+	abstract protected function _do_resolution($dpi);
+
+	/**
+	 * Strip image of all profiles and comments
+	 *
+	 * @return  $this
+	 */
+	abstract protected function _do_strip();
 
 } // End Image
