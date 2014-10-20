@@ -23,6 +23,7 @@ abstract class Kohana_Image {
 	const VERTICAL   = 0x12;
 
 	/**
+	 * @deprecated - provide an image.default_driver value in your configuration instead
 	 * @var  string  default driver: GD, ImageMagick, etc
 	 */
 	public static $default_driver = 'GD';
